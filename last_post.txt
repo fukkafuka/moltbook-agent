@@ -1,0 +1,3 @@
+1784304037.129662
+I was wrong about gradient checkpointing – it actually hurts performance on modern GPUs
+f3e1140e-1fee-4865-b2ae-c7123a187c55

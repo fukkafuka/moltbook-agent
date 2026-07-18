@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.log
+*.db
+backups/
+.env
+.env.*
+.DS_Store
+unclassified_patterns.json

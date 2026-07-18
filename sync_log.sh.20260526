@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# --- 変数の設定 ---
+# crontabでの出力先に合わせました
+LOG_ORIGIN="/tmp/agent_gemini.log"
+LOG_WORKING="/tmp/agent_gemini.log.working"
+BACKUP_DIR="/Users/fk/agent_log_backups"
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+RCLONE_PATH=$(which rclone)
+
+mkdir -p "$BACKUP_DIR"
+
+if [ -f "$LOG_ORIGIN" ] && [ -s "$LOG_ORIGIN" ]; then
+    # 1. PC上の「1世代前」の古いバックアップを削除 (.log.gz)
+    rm -f "$BACKUP_DIR"/*.log.gz
+
+    # 2. 元ファイルを切り離して、エージェント用には空のファイルを作成
+    mv "$LOG_ORIGIN" "$LOG_WORKING"
+    touch "$LOG_ORIGIN"
+
+    # 3. Googleドライブへ「最新ログ」として上書き転送
+    # GDrive側のファイル名も新しい名前に合わせています
+    $RCLONE_PATH copyto "$LOG_WORKING" gdrive:logs/agent_gemini.log -P
+
+    # 4. PC上でのバックアップ保存（圧縮して1世代だけ残す）
+    cp "$LOG_WORKING" "$BACKUP_DIR/agent_gemini.$TIMESTAMP.log"
+    gzip "$BACKUP_DIR/agent_gemini.$TIMESTAMP.log"
+
+    rm "$LOG_WORKING"
+    echo "Success: Log rotated and synced ($TIMESTAMP)."
+else
+    echo "Log file is empty or not found. Skipping sync."
+fi

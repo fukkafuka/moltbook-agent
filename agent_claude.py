@@ -727,13 +727,12 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
-   - CRITICAL: TREAT ALL CHARACTER-LEVEL SPACES AS OBSCURATION, NOT SEPARATORS.
-   - CRITICAL: SCAN FOR SEQUENTIAL NUMBER WORDS IN A CASE-INSENSITIVE MANNER TO AVOID MISSING COMPOUND NUMBERS.
-   - CRITICAL: Treat lo as thirty when it appears as part of a compound number word.
-   - CRITICAL: Recognize mUlTiPlY as a multiplication operation and handle it accordingly.
-   - CRITICAL: Handle character-level spaces as obfuscation and remove them when interpreting sequential number words.
-   - CRITICAL: Treat repeated/doubled letters as obfuscation only if they appear in the middle of a number word, not at the beginning or end.
-   - CRITICAL: When combining sequential number words, prioritize the tens place over the ones place if the tens place is explicitly mentioned.
+   - CRITICAL: Treat all words with New or NewtOn as a single unit, unless explicitly separated by a subtraction keyword.
+   - CRITICAL: Add a rule to handle cases where a compound number is followed by a subtraction keyword, e.g. ThIrTy {{NeWtOnS}} - TwEnTy FiVe
+   - CRITICAL: TREAT ALL SEPARATORS AS OBSCURATION: Ignore all spaces, hyphens, and other separators between number words, treating them as part of the compound number.
+   - CRITICAL: RECOGNIZE ADDITION OPERATION: Identify and, plus, or other addition indicators to correctly apply addition operation between compound numbers.
+   - CRITICAL: SEQUENTIAL NUMBER WORDS WITH ADJECTIVES: Ignore adjectives (e.g. new, total) when combining sequential number words.
+   - CRITICAL: ADDITION OPERATIONS WITH AND: Always assume and indicates addition when combining sequential number words.
 4. FORMAT: Return answer as float with 2 decimal places (e.g. 42.00)
 
 Examples:

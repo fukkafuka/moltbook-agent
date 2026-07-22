@@ -557,14 +557,18 @@ def regex_solve(challenge_text):  # noqa: replaced
     deduped_tokens = {normalize(t) for t in tokens}
 
     # ★ 訂正パターン検出: "oops"/"correction"/"scratch that"/"i mean"の直前の数値を撤回対象としてマーク
-    CORRECTION_KEYWORDS = {"oops", "correction", "scratch", "mean", "actually", "rather", "wait"}
+    CORRECTION_KEYWORDS = {"oops", "correction", "scratch", "mean", "actually", "rather", "wait", "no"}
     correction_positions = [idx for idx, t in enumerate(tokens) if t in CORRECTION_KEYWORDS]
 
     numbers = []
     number_end_positions = []  # 各numberが確定したトークン終了位置を記録
+    _combo_start_exclude = {'of', 'is', 'a', 'an', 'the', 'to', 'in', 'on', 'at', 'as', 'or', 'it', 'its'}
     i = 0
     while i < len(tokens):
         found = False
+        if tokens[i] in _combo_start_exclude:
+            i += 1
+            continue
         for end in range(min(i+3, len(tokens)), i, -1):
             val = lookup(''.join(tokens[i:end]))
             if val is not None:
@@ -600,15 +604,15 @@ def regex_solve(challenge_text):  # noqa: replaced
     if correction_positions and len(numbers) >= 2:
         to_remove = set()
         for cpos in correction_positions:
-            # cposより前で最も近い終了位置を持つnumberを撤回対象に
+            # cposの前後で最も近い終了位置を持つnumberを撤回対象に
+            # (サブシーケンスマッチの先読みでnumberの終了位置がcposより後になるケースがあるため前後両方を許容)
             best_idx = None
             best_dist = None
             for idx, end_pos in enumerate(number_end_positions):
-                if end_pos <= cpos:
-                    dist = cpos - end_pos
-                    if best_dist is None or dist < best_dist:
-                        best_dist = dist
-                        best_idx = idx
+                dist = abs(cpos - end_pos)
+                if best_dist is None or dist < best_dist:
+                    best_dist = dist
+                    best_idx = idx
             if best_idx is not None and best_dist is not None and best_dist <= 2:
                 to_remove.add(best_idx)
         if to_remove:
@@ -642,7 +646,7 @@ def regex_solve(challenge_text):  # noqa: replaced
         'countered','counters','counter','remains','remain',
     ])
     # キーワードもnormalizeして比較
-    mul_kws = {normalize(w) for w in ['multiplies','multiply','times','doubled','product','strikes','strike','together','each','applied','exerts','exert']}
+    mul_kws = {normalize(w) for w in ['multiplies','multiply','times','doubled','product','strikes','strike','together','each','applied']}
     sub_kws = {normalize(w) for w in ['removes','remove','loses','lose','lost','minus','subtracts','subtract',
                'leaves','remaining','resists','slows','reduced','opposes',
                'countered','counters','counter','remains','remain','back']}
@@ -727,12 +731,12 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
-   - CRITICAL: Treat all words with New or NewtOn as a single unit, unless explicitly separated by a subtraction keyword.
-   - CRITICAL: Add a rule to handle cases where a compound number is followed by a subtraction keyword, e.g. ThIrTy {{NeWtOnS}} - TwEnTy FiVe
-   - CRITICAL: TREAT ALL SEPARATORS AS OBSCURATION: Ignore all spaces, hyphens, and other separators between number words, treating them as part of the compound number.
-   - CRITICAL: RECOGNIZE ADDITION OPERATION: Identify and, plus, or other addition indicators to correctly apply addition operation between compound numbers.
-   - CRITICAL: SEQUENTIAL NUMBER WORDS WITH ADJECTIVES: Ignore adjectives (e.g. new, total) when combining sequential number words.
-   - CRITICAL: ADDITION OPERATIONS WITH AND: Always assume and indicates addition when combining sequential number words.
+   - CRITICAL: Treat words with trailing zeros as exact numbers (e.g., twenty five should be treated as 25 instead of 20 + 5).
+   - CRITICAL: Consider the context of the challenge when interpreting symbols and words (e.g., product implies multiplication, but newtons implies addition).
+   - CRITICAL: TREAT ALL WORDS AS LOWERCASE: Ignore case sensitivity to prevent mixed caps from causing errors.
+   - CRITICAL: MULTIPLICATION SYMBOLS: Recognize multiplication symbols (e.g., *, ×, ×) and apply multiplication operation when present.
+   - CRITICAL: TREAT ALL NUMBER WORDS AS COMPOUND NUMBERS UNLESS SPECIFICALLY INDICATED BY THE CONTEXT.
+   - CRITICAL: WHEN ENCOUNTERING A MIX OF ADDITION AND SUBTRACTION OPERATIONS, PRIORITY SHOULD BE GIVEN TO THE OPERATION THAT IS MORE DIRECTLY IMPLIED BY THE CONTEXT.
 4. FORMAT: Return answer as float with 2 decimal places (e.g. 42.00)
 
 Examples:

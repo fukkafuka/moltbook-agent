@@ -503,6 +503,15 @@ def classify_captcha_failure_offline(challenge_text):
     if "power" in raw_dedup and "transfer" in raw_dedup:
         return "乗算パターン（power transferred）"
 
+    if "exert" in raw_dedup and "and" in raw_dedup:
+        return "加算誤乗算パターン（exert+and誤判定・2026-07-22修正済み）"
+
+    if any(k in text_dedup.split() for k in ("no", "wait", "wel", "actualy")) and "?" in challenge_text:
+        return "言い直しパターン（訂正キーワード・2026-07-22修正済み）"
+
+    if " of " in text_lower:
+        return "機能語誤結合パターン（of等・2026-07-22修正済み）"
+
     return "未分類パターン（手動確認が必要）"
 
 def _record_doctor_fix(fixed_count, false_challenges=None):

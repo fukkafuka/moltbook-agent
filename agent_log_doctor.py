@@ -512,6 +512,15 @@ def classify_captcha_failure_offline(challenge_text):
     if " of " in text_lower:
         return "機能語誤結合パターン（of等・2026-07-22修正済み）"
 
+    # 乗算/減算キーワードが一切なく"and"のみの場合はデフォルト加算として扱われるため分類可能
+    _mul_sub_kws = (
+        "multipl", "product", "strike", "together", "each", "applied",
+        "remov", "lose", "lost", "minus", "subtract", "leav", "resist",
+        "slow", "reduc", "oppos", "counter", "remain", "back",
+    )
+    if "and" in raw_dedup and not any(k in raw_dedup for k in _mul_sub_kws):
+        return "加算パターン（デフォルト加算・2026-07-23修正済み）"
+
     return "未分類パターン（手動確認が必要）"
 
 def _record_doctor_fix(fixed_count, false_challenges=None):

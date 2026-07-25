@@ -542,8 +542,11 @@ def regex_solve(challenge_text):  # noqa: replaced
                         return wv
             # ★ 逆方向サブシーケンス: normalize(token)がnormalize(word)のサブシーケンス
             # 末尾省略ノイズ対応（"fiftee"→"fifteen"=15, "seventee"→"seventeen"=17 等）
+            # 恒久対応(2026-07-25): しきい値を3→4に引き上げ。"senses"→"sen"(3文字)のような
+            # 一般英単語の正規化形が数値語("seventeen"→"sevnt"等)に偶然部分一致し、
+            # 架空の数値(例:17)を誤検出するケースが判明したため(lobster系デコイ文で発覚)。
             norm_t = normalize(t)
-            if len(norm_t) >= 3:
+            if len(norm_t) >= 4:
                 for w, wv in sorted(NUMBER_WORDS_RX.items(), key=lambda x: -len(x[0])):
                     norm_w = normalize(w)
                     if len(norm_w) >= 3 and abs(len(norm_t) - len(norm_w)) <= 3:
@@ -554,6 +557,15 @@ def regex_solve(challenge_text):  # noqa: replaced
 
     clean = re.sub(r'[^a-zA-Z]', ' ', challenge_text).lower()
     tokens = [t for t in clean.split() if t]
+    # 恒久対応(2026-07-25): lobster/shark等の海洋生物系デコイ単語は文字重複攪乱(例: lOoObSssTeR)の
+    # 対象になりやすいフレーバーテキストであり、数値語・演算キーワード判定には一切関係ないため、
+    # normalize()で正規化した上で既知ノイズ語として明示的に除外する(将来のサブシーケンス誤マッチ対策)
+    NOISE_DECOY_WORDS = {
+        'lobster', 'shark', 'crab', 'octopus', 'squid', 'jellyfish',
+        'starfish', 'urchin', 'clam', 'shrimp', 'dominance', 'territory',
+        'physiology', 'senses', 'antenna', 'antennas',
+    }
+    tokens = [t for t in tokens if normalize(t) not in NOISE_DECOY_WORDS]
     deduped_tokens = {normalize(t) for t in tokens}
 
     # ★ 訂正パターン検出: "oops"/"correction"/"scratch that"/"i mean"の直前の数値を撤回対象としてマーク
@@ -723,7 +735,7 @@ STRICT RULES:
    - CRITICAL: TREAT ALL SEPARATORS AS OBSCURATION: Ignore all separators (spaces, hyphens, underscores, etc.) between number words.
    - CRITICAL: HANDLE TENS+ONES COMBINATIONS WITH PRIORITY: When encountering a tens+ones combination, prioritize it over other number words.
    - CRITICAL: TREAT product as a multiplication keyword only when it directly precedes the numbers being multiplied.
-   - CRITICAL: TREAT lo as 90 (60 +
+   - CRITICAL: TREAT AND AS A DEFAULT OPERATION IF NO
 3. OPERATION DETECTION:
    - ADDITION (+): "adds", "plus", "and", "total", "gains", "increases by", "during fight", "during dominance fight"
    - CRITICAL EXCEPTION: If question asks "how many remain" or "what remains" or "remaining force", it is SUBTRACTION regardless of dominance fight. Example: "twenty three newtons, during dominance fight loses seven, how many remain" = 23 - 7 = 16
@@ -731,12 +743,10 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
-   - CRITICAL: Treat words with trailing zeros as exact numbers (e.g., twenty five should be treated as 25 instead of 20 + 5).
-   - CRITICAL: Consider the context of the challenge when interpreting symbols and words (e.g., product implies multiplication, but newtons implies addition).
-   - CRITICAL: TREAT ALL WORDS AS LOWERCASE: Ignore case sensitivity to prevent mixed caps from causing errors.
-   - CRITICAL: MULTIPLICATION SYMBOLS: Recognize multiplication symbols (e.g., *, ×, ×) and apply multiplication operation when present.
-   - CRITICAL: TREAT ALL NUMBER WORDS AS COMPOUND NUMBERS UNLESS SPECIFICALLY INDICATED BY THE CONTEXT.
-   - CRITICAL: WHEN ENCOUNTERING A MIX OF ADDITION AND SUBTRACTION OPERATIONS, PRIORITY SHOULD BE GIVEN TO THE OPERATION THAT IS MORE DIRECTLY IMPLIED BY THE CONTEXT.
+   - CRITICAL: TREAT ALL PUNCTUATION AS NOISE: Ignore all punctuation marks, including spaces, when reading the CAPTCHA challenge.
+   - CRITICAL: HANDLE NUMBER WORDS WITH APOSTROPHES: Include number words with apostrophes in the list of recognized number words, such as twenty-first or thirty-third.
+   - CRITICAL: Treat and as a clear operation keyword for addition.
+   - CRITICAL: When it registers is mentioned, assume it indicates a clear operation keyword for addition or multiplication.
 4. FORMAT: Return answer as float with 2 decimal places (e.g. 42.00)
 
 Examples:

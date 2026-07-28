@@ -743,10 +743,8 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
-   - CRITICAL: TREAT ALL PUNCTUATION AS NOISE: Ignore all punctuation marks, including spaces, when reading the CAPTCHA challenge.
-   - CRITICAL: HANDLE NUMBER WORDS WITH APOSTROPHES: Include number words with apostrophes in the list of recognized number words, such as twenty-first or thirty-third.
-   - CRITICAL: Treat and as a clear operation keyword for addition.
-   - CRITICAL: When it registers is mentioned, assume it indicates a clear operation keyword for addition or multiplication.
+   - CRITICAL: TREAT ALL SEPARATORS AS PART OF THE NUMBER WORD, EVEN IF THEY ARE SYMBOLS OR SPACES.
+   - CRITICAL: WHEN COMBINING NUMBER WORDS, ALWAYS CHECK FOR TENS+ONES COMBINATIONS FIRST, THEN CHECK FOR OTHER SEQUENTIAL NUMBER WORDS.
 4. FORMAT: Return answer as float with 2 decimal places (e.g. 42.00)
 
 Examples:

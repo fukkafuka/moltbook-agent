@@ -566,6 +566,16 @@ def regex_solve(challenge_text):  # noqa: replaced
         'physiology', 'senses', 'antenna', 'antennas',
     }
     tokens = [t for t in tokens if normalize(t) not in NOISE_DECOY_WORDS]
+    # 恒久対応(2026-07-28): "LoOoObBsTt-ErR"のようにハイフンで単語内部が分断されると、
+    # 分断後の各断片(例: lobst / err)が単独ではNOISE_DECOY_WORDSと一致しなくなる。
+    # 隣接する2トークンを結合した場合にもノイズ語と一致するか確認し、該当すれば両方除外する
+    _merge_noise_idx = set()
+    for i in range(len(tokens) - 1):
+        if normalize(tokens[i] + tokens[i + 1]) in NOISE_DECOY_WORDS:
+            _merge_noise_idx.add(i)
+            _merge_noise_idx.add(i + 1)
+    if _merge_noise_idx:
+        tokens = [t for idx, t in enumerate(tokens) if idx not in _merge_noise_idx]
     deduped_tokens = {normalize(t) for t in tokens}
 
     # ★ 訂正パターン検出: "oops"/"correction"/"scratch that"/"i mean"の直前の数値を撤回対象としてマーク
@@ -669,6 +679,12 @@ def regex_solve(challenge_text):  # noqa: replaced
     elif has_sub_word or sub_kws & deduped_tokens:
         op = '-'
     elif has_mul_word or mul_kws & deduped_tokens:
+        op = '*'
+    elif {'per', 'for'} <= deduped_tokens:
+        # 2026-07-28: "at X per second for Y seconds"のような速度×時間パターンには
+        # times/multiply等の明示的な乗算キーワードが一切含まれないため、
+        # 「per」と「for」が両方出現する場合を暗黙の乗算シグナルとして扱う
+        # (sub_kwsが先に優先されるため、明示的な減算表現がある場合はそちらが優先される)
         op = '*'
 
     a, b = numbers[0], numbers[1]

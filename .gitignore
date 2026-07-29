@@ -8,3 +8,7 @@ backups/
 .env
 .env.*
 .DS_Store
+memory.json
+commented.txt
+last_post.txt
+*.bak_*

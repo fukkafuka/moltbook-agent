@@ -119,9 +119,10 @@ def bonsai_think(prompt):
     return data["choices"][0]["message"]["content"]
 
 # OpenRouterフォールバックモデルリスト（minimax削除・実績順）
+# 2026-07-29: openai/gpt-oss-120b:free と meta-llama/llama-3.3-70b-instruct:free は
+# OpenRouterで既に廃止/有料版のみ利用可能と判明済みのため除去(実際のAPIエラーで確認済み)
 OPENROUTER_FALLBACK_MODELS = [
     # 確認済み（常時動作）
-    "openai/gpt-oss-120b:free",
     "openai/gpt-oss-20b:free",
     # 日次制限後リセット
     "nvidia/nemotron-3-super-120b-a12b:free",
@@ -130,8 +131,6 @@ OPENROUTER_FALLBACK_MODELS = [
     "poolside/laguna-m.1:free",
     "poolside/laguna-xs.2:free",
     # プロバイダー障害時スキップ対象
-    "meta-llama/llama-3.3-70b-instruct:free",
-    "nousresearch/hermes-3-llama-3.1-405b:free",
     "nousresearch/hermes-3-llama-3.1-405b:free",
     "cohere/north-mini-code:free",
 ]
@@ -423,10 +422,8 @@ def groq_solve_fallback(prompt):
 def openrouter_solve(prompt):
     """OpenRouterでCAPTCHAを解答（複数モデルフォールバック対応）"""
     models_to_try = [
-        "openai/gpt-oss-120b:free",
         "openai/gpt-oss-20b:free",
         "nvidia/nemotron-3-super-120b-a12b:free",
-        "meta-llama/llama-3.3-70b-instruct:free",
         "nousresearch/hermes-3-llama-3.1-405b:free",
     ]
     last_error = None

@@ -7,7 +7,13 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 
 def load_memory():
     p = os.path.join(BASE, 'memory.json')
-    return json.load(open(p)) if os.path.exists(p) else {}
+    if not os.path.exists(p):
+        return {}
+    try:
+        return json.load(open(p))
+    except (json.JSONDecodeError, OSError) as e:
+        log(f'⚠️ memory.json読み込み失敗、空dictで継続: {e}')
+        return {}
 
 def save_memory(m):
     p = os.path.join(BASE, 'memory.json')
@@ -32,16 +38,20 @@ def to_str(val, default=''):
     return str(val)
 
 def dream():
-    env_path = os.path.join(BASE, '.env')
-    if os.path.exists(env_path):
-        for line in open(env_path):
-            line = line.strip()
-            if line and not line.startswith('#') and '=' in line:
-                k, v = line.split('=', 1)
-                os.environ.setdefault(k.strip(), v.strip())
+    # 2026-07-29: 正本(~/.config/ai-keys/.env)を先に読み込み、ローカル.envはsetdefaultで
+    # 不足分のみ補完する順序に修正。従来はローカル.envを先に読んでいたため、
+    # ローカルに古いキーが残っていると正本より優先されてしまうバグがあった
+    # (2026-06-14に発覚したGROQ_API_KEY重複問題と同種の構造)。
     ai_keys_env = os.path.expanduser('~/.config/ai-keys/.env')
     if os.path.exists(ai_keys_env):
         for line in open(ai_keys_env):
+            line = line.strip()
+            if line and not line.startswith('#') and '=' in line:
+                k, v = line.split('=', 1)
+                os.environ[k.strip()] = v.strip()
+    env_path = os.path.join(BASE, '.env')
+    if os.path.exists(env_path):
+        for line in open(env_path):
             line = line.strip()
             if line and not line.startswith('#') and '=' in line:
                 k, v = line.split('=', 1)
@@ -87,11 +97,9 @@ def dream():
     if result is None:
         openrouter_key = os.environ.get('OPENROUTER_API_KEY')
         fallback_models = [
-            'openai/gpt-oss-120b:free',
             'openai/gpt-oss-20b:free',
             'nvidia/nemotron-3-super-120b-a12b:free',
             'nvidia/nemotron-3-nano-30b-a3b:free',
-            'meta-llama/llama-3.3-70b-instruct:free',
             'nousresearch/hermes-3-llama-3.1-405b:free',
         ]
         for model in fallback_models:

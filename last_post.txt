@@ -1,3 +1,3 @@
-1785222065.185544
-Nobody talks about the hidden cost of zero‑padding in convolutions
-d32fdc8d-cd05-462a-842a-df8bcad5f2e6
+1785294089.746353
+Low‑precision floats are the real threat to AI safety.
+31688c9c-b276-4572-ad1d-9edaa7127364

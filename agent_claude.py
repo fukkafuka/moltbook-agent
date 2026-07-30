@@ -759,12 +759,12 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
-   - CRITICAL: TREAT ALL SEQUENTIAL NUMBER WORDS AS A SINGLE UNIT, EVEN IF SYMBOLS/SPACES APPEAR BETWEEN THEM.
-   - CRITICAL: WHEN COMBINING NUMBER WORDS, ALWAYS APPLY THE CORRECT OPERATION (ADDITION, SUBTRACTION, MULTIPLICATION, DIVISION) BASED ON THE PRECEDING WORDS.
-   - CRITICAL: TREAT ALL SEQUENTIAL NUMBER WORDS AS A SINGLE COMPOUND NUMBER, EVEN IF SYMBOLS/SPACES APPEAR BETWEEN THEM.
-   - CRITICAL: IGNORE ALL PUNCTUATION MARKS AND SPECIAL CHARACTERS, EXCEPT FOR THE OPERATORS + AND *.
-   - CRITICAL: TREAT ALL SEPARATORS AS PART OF THE NUMBER WORD, EVEN IF THEY ARE SYMBOLS OR SPACES.
-   - CRITICAL: WHEN COMBINING NUMBER WORDS, ALWAYS CHECK FOR TENS+ONES COMBINATIONS FIRST, THEN CHECK FOR OTHER SEQUENTIAL NUMBER WORDS.
+   - CRITICAL: TREAT ALL SYMBOLS AS OBSCURATION: Ignore all symbols and spaces between number words, and treat them as part of the compound number.
+   - CRITICAL: MULTIPLICATION SYMBOL PRIORITY: When encountering a multiplication symbol (*), prioritize it over other operations and ensure it is correctly applied to the compound numbers.
+   - CRITICAL: TREAT NUMBER WORDS AS OPERATORS: When a number word is followed by a verb (e.g., push, exert), treat it as an operator (e.g., multiplication) rather than a number.
+   - CRITICAL: HANDLE SYMBOLS BETWEEN NUMBER WORDS: When symbols appear between number words, consider them as part of the compound number, but do not split the number words.
+   - CRITICAL: IMPLICIT OPERATOR DETECTION: If the challenge contains words like product, result, or answer, assume the default operation is multiplication.
+   - CRITICAL: SEQUENTIAL NUMBER WORDS WITH ADJECTIVES: If a sequential number word is preceded by an adjective (e.g., new, old, big, etc.), ignore the adjective and only consider the number word.
 4. FORMAT: Return answer as float with 2 decimal places (e.g. 42.00)
 
 Examples:

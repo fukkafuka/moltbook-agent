@@ -756,6 +756,8 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
+   - CRITICAL: IMMEDIATE RULE: Ignore all non-alphanumeric characters and mixed case letters, and convert to lowercase.
+   - CRITICAL: NEW RULE: If a number word is followed by a word that is not a number word, but is a valid word, consider it as part of the compound number, unless it is a tens+ones combination.
    - CRITICAL: Add rule to handle per keyword as a multiplication operator
    - CRITICAL: Add rule to handle and keyword as a concatenation operator
    - CRITICAL: Add rule to handle per keyword as a multiplication operator

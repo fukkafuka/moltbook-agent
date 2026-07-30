@@ -24,6 +24,12 @@ CASES = [
         "41.00",
         "lobster単語内文字重複型攪乱(2026-07-24発見)",
     ),
+    (
+        "A] LoOoObBsTt-ErR S^wImS[ aT/ ThReE mEeTeRs PeR sEcOnD fOr] FiVe sEcOnDs, Um/ "
+        "HoW MaNy MeTeRs TrAvEls? < >",
+        "15.00",
+        "lobster単語内部ハイフン分断型攪乱(2026-07-28発見)",
+    ),
 ]
 
 def main():

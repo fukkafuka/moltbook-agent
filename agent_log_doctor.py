@@ -10,12 +10,51 @@ import re
 import json
 import requests
 import shutil
+import subprocess
 from datetime import datetime
 
 LOG_FILE = "/Users/fk/Logs/agent_claude.log"
 AGENT_FILE = "/Users/fk/ai-agent/moltbook/agent_claude.py"
 BACKUP_DIR = "/Users/fk/ai-agent/moltbook/backups"
 DOCTOR_LOG = "/Users/fk/Logs/agent_log_doctor.log"
+
+
+def git_commit_and_push(filepath, message, timeout=30):
+    """AGENT_FILE等への直接書き込み後にgit commit+pushする。
+    2026-07-30追加: 従来apply_prompt_rules()/trim_critical_rules()はAGENT_FILEに
+    直接書き込むだけでgit commitを一切行っておらず、Mac側の未コミット変更が
+    次回のgit pull時に繰り返しコンフリクトを起こす原因になっていたため追加。
+    対象がgitリポジトリでない場合はエラーにせずスキップする。"""
+    try:
+        repo_dir = os.path.dirname(os.path.abspath(filepath))
+        chk = subprocess.run(
+            ["git", "-C", repo_dir, "rev-parse", "--is-inside-work-tree"],
+            capture_output=True, text=True, timeout=timeout
+        )
+        if chk.returncode != 0:
+            log(f"git_commit_and_push: {repo_dir}はgitリポジトリではないためスキップ")
+            return False
+        subprocess.run(["git", "-C", repo_dir, "add", filepath],
+                       capture_output=True, text=True, timeout=timeout)
+        commit = subprocess.run(
+            ["git", "-C", repo_dir, "commit", "-m", message],
+            capture_output=True, text=True, timeout=timeout
+        )
+        if commit.returncode != 0:
+            log(f"git_commit_and_push: commitなし(差分無し等): {commit.stdout.strip()[:200]}")
+            return False
+        push = subprocess.run(
+            ["git", "-C", repo_dir, "push"],
+            capture_output=True, text=True, timeout=timeout
+        )
+        if push.returncode != 0:
+            log(f"git_commit_and_push: push失敗: {push.stderr.strip()[:200]}")
+            return False
+        log(f"git_commit_and_push: commit+push成功 ({message[:50]})")
+        return True
+    except Exception as e:
+        log(f"git_commit_and_push: 例外発生（無視して続行）: {e}")
+        return False
 
 try:
     import dotenv
@@ -275,6 +314,8 @@ Target: ~40 rules maximum. Each rule should start WITHOUT "CRITICAL:" prefix."""
         with open(AGENT_FILE, "w") as f:
             f.write(new_content)
 
+        git_commit_and_push(AGENT_FILE, f"chore: CRITICALルールを整理・統合({current_count}件→{len(new_rules)}件)")
+
         log(f"✅ CRITICALルール整理完了: {current_count}件 → {len(new_rules)}件")
         return new_content
 
@@ -325,6 +366,7 @@ def apply_prompt_rules(rules):
 
     with open(AGENT_FILE, "w") as f:
         f.write(new_content)
+    git_commit_and_push(AGENT_FILE, f"chore: CAPTCHA失敗分析からCRITICALルールを{len(safe_rules)}件追加")
     return True
 
 def run():

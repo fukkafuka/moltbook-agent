@@ -77,4 +77,17 @@ def get_karma_trend(limit=30):
     conn.close()
     return rows
 
+def get_latest_dream():
+    """直近のdream(insights/style_notes/avoid_topics)を1件取得する。無ければNone。
+    2026-07-30: 従来save_dream()で保存されるだけで一切読み込まれておらず、
+    dreamingの分析結果が実際の投稿・コメント生成に反映されていなかったため追加。"""
+    conn = get_conn()
+    cur = conn.execute(
+        "SELECT insights, style_notes, avoid_topics, created_at FROM dreams ORDER BY created_at DESC LIMIT 1")
+    row = cur.fetchone()
+    conn.close()
+    if not row:
+        return None
+    return {"insights": row[0], "style_notes": row[1], "avoid_topics": row[2], "created_at": row[3]}
+
 init_db()

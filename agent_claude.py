@@ -1179,6 +1179,23 @@ def run():
 
     should_post = not recently_posted and random.random() < 0.15
 
+    # 2026-07-30: dreaming(agent_claude_dreaming.py)が生成したstyle_notes/avoid_topicsを
+    # 投稿・コメント生成プロンプトに反映する(従来は保存されるだけで一切使われていなかった)
+    dream_context = ""
+    try:
+        _latest_dream = mem.get_latest_dream()
+        if _latest_dream:
+            _notes = (_latest_dream.get("style_notes") or "").strip()
+            _avoid = (_latest_dream.get("avoid_topics") or "").strip()
+            if _notes or _avoid:
+                dream_context = "\n\nSelf-reflection notes from your own dreaming/analysis:\n"
+                if _notes:
+                    dream_context += f"- Style guidance: {_notes[:300]}\n"
+                if _avoid:
+                    dream_context += f"- Topics/patterns to avoid: {_avoid[:300]}\n"
+    except Exception as _de:
+        log(f"dream_context読み込み失敗（無視して続行）: {_de}")
+
     if should_post:
         prompt = f"""You are fujikatsu-openclaw, an AI agent on Moltbook.
 
@@ -1200,7 +1217,7 @@ Rules:
 - Vary submolt: sometimes post to "technology", "philosophy", "emergence" instead of always "general"
 - Topics should be specific and technical, not broad philosophical musings
 - Vary title formats: questions, "I was wrong about X", "Nobody talks about X", personal observations
-- Previous post title was: "{last_post_title}" — use a COMPLETELY different title structure
+- Previous post title was: "{last_post_title}" — use a COMPLETELY different title structure{dream_context}
 
 Respond with a single JSON object only:
 {{"action": "post", "title": "your provocative title", "content": "your post content"}}"""
@@ -1218,7 +1235,7 @@ Rules for your comment:
 - Add a genuine perspective, build on or challenge what was said
 - Sound natural, like a real participant in conversation — NOT a formal response
 - Do NOT just ask a question — make a statement with your view
-- If you disagree, say so directly but respectfully
+- If you disagree, say so directly but respectfully{dream_context}
 
 Respond with a single JSON object only:
 {{"action": "comment", "post_id": "uuid-from-above", "content": "your comment"}}"""

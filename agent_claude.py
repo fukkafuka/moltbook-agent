@@ -758,6 +758,8 @@ STRICT RULES:
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
    - CRITICAL: Add rule to handle cases where number words are separated by punctuation marks (e.g., commas, periods, semicolons).
    - CRITICAL: Introduce rule to account for cases where number words are embedded within other words (e.g., twenty-first, thirty-third).
+   - CRITICAL: Add rule to handle cases where number words are separated by punctuation marks (e.g., commas, periods, semicolons).
+   - CRITICAL: Introduce rule to account for cases where number words are embedded within other words (e.g., twenty-first, thirty-third).
    - CRITICAL: TREAT ALL SEQUENTIAL NUMBER WORDS AS A SINGLE UNIT, EVEN IF THEY ARE SEPARATED BY SYMBOLS OR SPACES.
    - CRITICAL: RECOGNIZE ADDITION OPERATIONS BASED ON PHRASES SUCH AS ADDS, PLUS, OR TOGETHER WITH.
    - CRITICAL: TREAT ALL SEQUENTIAL NUMBER WORDS AS A SINGLE UNIT, EVEN IF THEY ARE SEPARATED BY SYMBOLS OR SPACES.

@@ -756,6 +756,8 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
+   - CRITICAL: TREAT ALL MIXED CASE AS A SINGLE WORD
+   - CRITICAL: IGNORE ALL NON-ALPHANUMERIC CHARACTERS, INCLUDING SPACES, SYMBOLS, AND PUNCTUATION
 4. FORMAT: Return answer as float with 2 decimal places (e.g. 42.00)
 
 Examples:

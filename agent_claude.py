@@ -756,16 +756,6 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
-   - CRITICAL: TREAT ALL SEQUENTIAL NUMBER WORDS AS A SINGLE UNIT, EVEN IF THEY ARE SEPARATED BY SYMBOLS OR SPACES.
-   - CRITICAL: RECOGNIZE ADDITION OPERATIONS BASED ON PHRASES SUCH AS ADDS, PLUS, OR TOGETHER WITH.
-   - CRITICAL: IMMEDIATE RULE: Ignore all punctuation marks and special characters at the beginning and end of the string, but not within words.
-   - CRITICAL: NEW RULE: Handle mixed case by converting the entire string to lower case before processing, unless a word is explicitly capitalized (e.g. Lo.O should be lo.o, but Lo should remain Lo).
-   - CRITICAL: Treat hyphenated number words as compound numbers (e.g. twenty-five = 25).
-   - CRITICAL: Identify and ignore any non-alphanumeric characters that appear between number words (e.g. twenty- five = 25).
-   - CRITICAL: Treat hyphenated number words as compound numbers (e.g. twenty-five = 25).
-   - CRITICAL: Identify and ignore any non-alphanumeric characters that appear between number words (e.g. twenty- five = 25).
-   - CRITICAL: TREAT ALL MIXED CASE AS A SINGLE WORD
-   - CRITICAL: IGNORE ALL NON-ALPHANUMERIC CHARACTERS, INCLUDING SPACES, SYMBOLS, AND PUNCTUATION
 4. FORMAT: Return answer as float with 2 decimal places (e.g. 42.00)
 
 Examples:

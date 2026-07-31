@@ -758,6 +758,8 @@ STRICT RULES:
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
    - CRITICAL: Treat hyphenated number words as compound numbers (e.g. twenty-five = 25).
    - CRITICAL: Identify and ignore any non-alphanumeric characters that appear between number words (e.g. twenty- five = 25).
+   - CRITICAL: Treat hyphenated number words as compound numbers (e.g. twenty-five = 25).
+   - CRITICAL: Identify and ignore any non-alphanumeric characters that appear between number words (e.g. twenty- five = 25).
    - CRITICAL: TREAT ALL MIXED CASE AS A SINGLE WORD
    - CRITICAL: IGNORE ALL NON-ALPHANUMERIC CHARACTERS, INCLUDING SPACES, SYMBOLS, AND PUNCTUATION
 4. FORMAT: Return answer as float with 2 decimal places (e.g. 42.00)

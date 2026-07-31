@@ -758,6 +758,8 @@ STRICT RULES:
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
    - CRITICAL: Treat and as a separator for compound numbers only when it appears between two number words, not when it appears at the beginning or end of a number word.
    - CRITICAL: Consider um and uh as obfuscation and ignore them when processing number words.
+   - CRITICAL: Treat and as a separator for compound numbers only when it appears between two number words, not when it appears at the beginning or end of a number word.
+   - CRITICAL: Consider um and uh as obfuscation and ignore them when processing number words.
 4. FORMAT: Return answer as float with 2 decimal places (e.g. 42.00)
 
 Examples:

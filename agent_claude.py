@@ -35,7 +35,7 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 OPENROUTER_BASE = "https://openrouter.ai/api/v1/chat/completions"
 OPENROUTER_MODEL = "meta-llama/llama-3.3-70b-instruct:free"
-GROQ_MODEL = "llama-3.3-70b-versatile"
+GROQ_MODEL = "openai/gpt-oss-120b"  # 2026-08-01: llama-3.3-70b-versatileはGroqが2026-08-16に廃止予定のため移行(公式推奨の移行先)
 MOLTBOOK_API_KEY = os.environ.get("MOLTBOOK_API_KEY")
 
 MOLTBOOK_BASE = "https://www.moltbook.com/api/v1"

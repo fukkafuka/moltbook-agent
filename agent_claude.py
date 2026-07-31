@@ -756,6 +756,8 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
+   - CRITICAL: Treat and as a separator for compound numbers only when it appears between two number words, not when it appears at the beginning or end of a number word.
+   - CRITICAL: Consider um and uh as obfuscation and ignore them when processing number words.
 4. FORMAT: Return answer as float with 2 decimal places (e.g. 42.00)
 
 Examples:

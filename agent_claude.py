@@ -756,16 +756,6 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
-   - CRITICAL: IMMEDIATE RULE: Ignore all punctuation marks and special characters, treating them as whitespace.
-   - CRITICAL: NEW RULE: Handle mixed caps by converting all text to lowercase before processing, to prevent incorrect number word identification.
-   - CRITICAL: Add a rule to handle cases where number words are separated by punctuation marks, such as commas or periods.
-   - CRITICAL: Introduce a rule to account for cases where the number words are embedded within a sentence, requiring the agent to identify the relevant words.
-   - CRITICAL: IMMEDIATE RULE: Ignore all non-alphanumeric characters and mixed case letters, and convert to lowercase.
-   - CRITICAL: NEW RULE: If a number word is followed by a word that is not a number word, but is a valid word, consider it as part of the compound number, unless it is a tens+ones combination.
-   - CRITICAL: Add rule to handle per keyword as a multiplication operator
-   - CRITICAL: Add rule to handle and keyword as a concatenation operator
-   - CRITICAL: Add rule to handle per keyword as a multiplication operator
-   - CRITICAL: Add rule to handle and keyword as a concatenation operator
 4. FORMAT: Return answer as float with 2 decimal places (e.g. 42.00)
 
 Examples:

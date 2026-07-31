@@ -756,6 +756,9 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
+   - CRITICAL: Treat all sequential number words as a single compound number, even if they are separated by symbols or spaces.
+   - CRITICAL: When encountering a unit (e.g. NoOoToNs), ignore it unless it is part of a compound number.
+   - CRITICAL: When encountering an addition indicator (e.g. aNd), combine the preceding and following numbers.
    - CRITICAL: Add rule to handle cases where number words are separated by punctuation marks (e.g., commas, periods, semicolons).
    - CRITICAL: Introduce rule to account for cases where number words are embedded within other words (e.g., twenty-first, thirty-third).
    - CRITICAL: Add rule to handle cases where number words are separated by punctuation marks (e.g., commas, periods, semicolons).

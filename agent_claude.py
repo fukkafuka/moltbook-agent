@@ -756,6 +756,8 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
+   - CRITICAL: TREAT ALL SEPARATORS AS OBSCURATION: Ignore all spaces, hyphens, and other separators between number words.
+   - CRITICAL: SCAN FOR TENS+ONES COMBINATIONS FIRST: Prioritize identifying tens+ones combinations before scanning for other number words.
    - CRITICAL: TREAT ALL SEPARATORS AS OBSCURATION: Ignore all separators (spaces, tabs, newlines, etc.) between number words.
    - CRITICAL: HANDLE TENS+ONES COMBINATIONS WITH PRIORITY: When multiple tens+ones combinations are present, prioritize the combination with the highest tens value.
    - CRITICAL: Treat and as a separator for addition, but also consider plus as a valid operator for addition.

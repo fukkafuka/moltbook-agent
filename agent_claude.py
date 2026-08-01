@@ -121,7 +121,9 @@ def bonsai_think(prompt):
 # OpenRouterフォールバックモデルリスト（minimax削除・実績順）
 # 2026-07-29: openai/gpt-oss-120b:free と meta-llama/llama-3.3-70b-instruct:free は
 # OpenRouterで既に廃止/有料版のみ利用可能と判明済みのため除去(実際のAPIエラーで確認済み)
-OPENROUTER_FALLBACK_MODELS = [
+from model_status import filter_alive_models
+
+_OPENROUTER_CANDIDATE_MODELS = [
     # 確認済み（常時動作）
     "openai/gpt-oss-20b:free",
     # 日次制限後リセット
@@ -134,6 +136,8 @@ OPENROUTER_FALLBACK_MODELS = [
     "nousresearch/hermes-3-llama-3.1-405b:free",
     "cohere/north-mini-code:free",
 ]
+# 2026-08-01: ~/.config/ai-keys/model_status.jsonでdead判定済みのモデルを実行時に自動除外する
+OPENROUTER_FALLBACK_MODELS = filter_alive_models(_OPENROUTER_CANDIDATE_MODELS, provider="openrouter")
 
 def openrouter_think(prompt, model=None):
     """OpenRouterでthink（Groqトークン枯渇時のフォールバック）"""
@@ -421,11 +425,11 @@ def groq_solve_fallback(prompt):
 
 def openrouter_solve(prompt):
     """OpenRouterでCAPTCHAを解答（複数モデルフォールバック対応）"""
-    models_to_try = [
+    models_to_try = filter_alive_models([
         "openai/gpt-oss-20b:free",
         "nvidia/nemotron-3-super-120b-a12b:free",
         "nousresearch/hermes-3-llama-3.1-405b:free",
-    ]
+    ], provider="openrouter")
     last_error = None
     for m in models_to_try:
         try:

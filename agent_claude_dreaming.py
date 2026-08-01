@@ -2,6 +2,7 @@ import json, os, requests, re, sys
 from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import agent_claude_memory as mem
+from model_status import filter_alive_models
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 
@@ -96,12 +97,12 @@ def dream():
     # OpenRouterフォールバック（中国系モデル除外済み）
     if result is None:
         openrouter_key = os.environ.get('OPENROUTER_API_KEY')
-        fallback_models = [
+        fallback_models = filter_alive_models([
             'openai/gpt-oss-20b:free',
             'nvidia/nemotron-3-super-120b-a12b:free',
             'nvidia/nemotron-3-nano-30b-a3b:free',
             'nousresearch/hermes-3-llama-3.1-405b:free',
-        ]
+        ], provider="openrouter")
         for model in fallback_models:
             try:
                 r = requests.post(

@@ -63,7 +63,7 @@ except Exception:
     pass
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-GROQ_MODEL = "llama-3.1-8b-instant"
+GROQ_MODEL = "openai/gpt-oss-20b"  # 2026-08-01: llama-3.1-8b-instantはGroqが2026-08-16に廃止予定のため移行(公式推奨の移行先)
 
 def log(msg):
     ts = datetime.now().strftime('%H:%M:%S')

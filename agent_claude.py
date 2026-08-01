@@ -756,16 +756,6 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
-   - CRITICAL: TREAT ALL NUMBER WORDS AS SEQUENTIAL UNLESS SPECIFICALLY STATED AS A SINGLE NUMBER.
-   - CRITICAL: IGNORE ALL SYMBOLS AND MIXED CASES WHEN PROCESSING NUMBER WORDS.
-   - CRITICAL: TREAT ALL NUMBER WORDS AS SEQUENTIAL UNLESS SPECIFICALLY STATED AS A SINGLE NUMBER.
-   - CRITICAL: IGNORE ALL SYMBOLS AND MIXED CASES WHEN PROCESSING NUMBER WORDS.
-   - CRITICAL: TREAT ALL SEQUENTIAL NUMBER WORDS AS A SINGLE COMPOUND NUMBER, EVEN IF THEY ARE SEPARATED BY SYMBOLS OR SPACES.
-   - CRITICAL: WHEN A CHALLENGE ASKS FOR A TOTAL VALUE, ASSUME THE OPERATION IS ADDITION UNLESS A CLEAR SUBTRACTION KEYWORD IS PRESENT.
-   - CRITICAL: Treat and as a separator for compound numbers only when it appears between two number words, not when it appears at the beginning or end of a number word.
-   - CRITICAL: Consider um and uh as obfuscation and ignore them when processing number words.
-   - CRITICAL: Treat and as a separator for compound numbers only when it appears between two number words, not when it appears at the beginning or end of a number word.
-   - CRITICAL: Consider um and uh as obfuscation and ignore them when processing number words.
 4. FORMAT: Return answer as float with 2 decimal places (e.g. 42.00)
 
 Examples:

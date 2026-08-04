@@ -390,6 +390,25 @@ def run():
         if os.path.exists(pid_file):
             os.remove(pid_file)
 
+def _record_doctor_error(reason):
+    """doctorが問題を検出したにもかかわらずクラッシュ/失敗して修正に至らなかった場合の記録。
+    2026-08-04追加: ダッシュボードの「修正0件」が『本当に修正不要だった』のか
+    『エラーで記録すらできなかった』のかを区別できるようにするため。"""
+    try:
+        m = json.load(open(MEMORY_FILE)) if os.path.exists(MEMORY_FILE) else {}
+    except Exception:
+        m = {}
+    m.setdefault("doctor_errors", []).append({
+        "time": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "reason": reason[:200],
+    })
+    m["doctor_errors"] = m["doctor_errors"][-200:]
+    try:
+        json.dump(m, open(MEMORY_FILE, "w"), ensure_ascii=False, indent=2)
+    except Exception as e:
+        log(f"_record_doctor_error: memory.json書き込み失敗: {e}")
+
+
 def _run():
     log("🏥 agent_log_doctor 起動")
 
@@ -420,12 +439,15 @@ def _run():
                 data = data[0] if data else {}
             if not isinstance(data, dict):
                 log(f"パースエラー: 期待した辞書形式ではありません(型={type(data).__name__}): {str(data)[:200]}")
+                _record_doctor_error(f"パースエラー(型={type(data).__name__})")
                 return
         except Exception as e:
             log(f"パースエラー: {e}")
+            _record_doctor_error(f"パースエラー: {e}")
             return
     except Exception as e:
         log(f"分析エラー: {e}")
+        _record_doctor_error(f"分析エラー: {e}")
         return
 
     log(f"分析結果: {data.get('summary', '不明')}")
@@ -450,6 +472,7 @@ def _run():
         _record_doctor_fix(len(false_challenges), false_challenges)
     else:
         log("❌ 修正失敗")
+        _record_doctor_error("apply_prompt_rules失敗")
 
     log("🏥 agent_log_doctor 終了")
 

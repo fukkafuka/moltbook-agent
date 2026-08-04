@@ -418,6 +418,9 @@ def _run():
             data = json.loads(repair_json(result.strip()))
             if isinstance(data, list):
                 data = data[0] if data else {}
+            if not isinstance(data, dict):
+                log(f"パースエラー: 期待した辞書形式ではありません(型={type(data).__name__}): {str(data)[:200]}")
+                return
         except Exception as e:
             log(f"パースエラー: {e}")
             return
@@ -724,6 +727,9 @@ def run_doctor_check():
         data = _json.loads(repair_json(result.strip()))
         if isinstance(data, list):
             data = data[0] if data else {}
+        if not isinstance(data, dict):
+            log(f"🏥 run_doctor_check: パースエラー、期待した辞書形式ではありません(型={type(data).__name__})")
+            return
         log("🏥 doctor: " + data.get("summary", "不明") + " / " + data.get("severity", "不明"))
         if data.get("action") != "fix":
             log("🏥 修正不要と判断")

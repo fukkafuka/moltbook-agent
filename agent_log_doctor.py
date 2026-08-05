@@ -11,6 +11,7 @@ import json
 import requests
 import shutil
 import subprocess
+from model_status import filter_alive_models
 from datetime import datetime
 
 LOG_FILE = "/Users/fk/Logs/agent_claude.log"
@@ -98,13 +99,11 @@ def groq_analyze(prompt):
     if not openrouter_key:
         raise Exception("OpenRouter APIキーが見つかりません")
 
-    fallback_models = [
-        "openai/gpt-oss-120b:free",
+    fallback_models = filter_alive_models([
         "openai/gpt-oss-20b:free",
         "nvidia/nemotron-3-super-120b-a12b:free",
-        "meta-llama/llama-3.3-70b-instruct:free",
         "nousresearch/hermes-3-llama-3.1-405b:free",
-    ]
+    ], provider="openrouter")
     for model in fallback_models:
         try:
             r = requests.post(
@@ -371,23 +370,31 @@ def apply_prompt_rules(rules):
 
 def run():
     pid_file = "/Users/fk/ai-agent/logs/agent_log_doctor.pid"
-    if os.path.exists(pid_file):
-        with open(pid_file) as f:
-            old_pid = f.read().strip()
-        try:
-            import subprocess
-            result = subprocess.run(["ps", "-p", old_pid], capture_output=True)
-            if result.returncode == 0:
-                print(f"Already running (PID {old_pid})")
-                return
-        except Exception:
-            pass
-    with open(pid_file, "w") as f:
-        f.write(str(os.getpid()))
+    # 2026-08-05: pid_fileの親ディレクトリが存在しない場合、open()がFileNotFoundErrorで
+    # クラッシュしrun()全体(=doctorの分析処理そのもの)が実行されなくなるバグがあった。
+    # 多重起動防止ロック自体が失敗しても、本来の分析処理は必ず実行されるようにする。
+    try:
+        os.makedirs(os.path.dirname(pid_file), exist_ok=True)
+        if os.path.exists(pid_file):
+            with open(pid_file) as f:
+                old_pid = f.read().strip()
+            try:
+                import subprocess
+                result = subprocess.run(["ps", "-p", old_pid], capture_output=True)
+                if result.returncode == 0:
+                    print(f"Already running (PID {old_pid})")
+                    return
+            except Exception:
+                pass
+        with open(pid_file, "w") as f:
+            f.write(str(os.getpid()))
+    except Exception as e:
+        log(f"⚠️ PIDロック処理でエラー（多重起動防止は無効化されるが処理は続行）: {e}")
+        pid_file = None
     try:
         _run()
     finally:
-        if os.path.exists(pid_file):
+        if pid_file and os.path.exists(pid_file):
             os.remove(pid_file)
 
 def _record_doctor_error(reason):

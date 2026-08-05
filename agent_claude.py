@@ -760,6 +760,8 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
+   - CRITICAL: When the word point (case‑insensitive, possibly obfuscated) appears between two number words, combine them into a single decimal number, using the first word as the integer part and the second as the fractional part.
+   - CRITICAL: If point is present, ignore any intervening symbols or spaces and treat the preceding and following number words as a single numeric token.
    - CRITICAL: Treat the symbols * and - as separators between number words, not as multiplication or subtraction operators.
    - CRITICAL: When the phrase Net Force appears, compute the difference between the first and second numeric values encountered in the challenge.
    - CRITICAL: TREAT ALL SEPARATORS AS OBSCURATION: Ignore all spaces, hyphens, and other separators between number words.

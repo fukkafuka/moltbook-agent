@@ -5,6 +5,7 @@ agent_log_doctor.py
 - Groqに分析させて修正方針を決定
 - agent_claude.pyを自動修正（バックアップ付き）
 """
+import sys
 import os
 import re
 import json
@@ -66,7 +67,17 @@ except Exception:
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 GROQ_MODEL = "openai/gpt-oss-20b"  # 2026-08-01: llama-3.1-8b-instantはGroqが2026-08-16に廃止予定のため移行(公式推奨の移行先)
 
+_SANITIZER_PATH = os.path.expanduser("~/.config/ai-keys")
+if _SANITIZER_PATH not in sys.path:
+    sys.path.insert(0, _SANITIZER_PATH)
+try:
+    from secret_sanitizer import sanitize_secrets as _sanitize_secrets
+except Exception:
+    def _sanitize_secrets(text):
+        return text
+
 def log(msg):
+    msg = _sanitize_secrets(str(msg))
     ts = datetime.now().strftime('%H:%M:%S')
     print(f"🏥[{ts}] {msg}", flush=True)
 

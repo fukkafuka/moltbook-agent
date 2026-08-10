@@ -2,6 +2,7 @@
 import json
 import requests
 import re
+import sys
 import os
 import time
 from datetime import datetime
@@ -38,7 +39,17 @@ MOLTBOOK_BASE = "https://www.moltbook.com/api/v1"
 # セッション内Geminiクォータ枯渇フラグ（429検出後は以降の試行をスキップ）
 _gemini_quota_exhausted = False
 
+_SANITIZER_PATH = os.path.expanduser("~/.config/ai-keys")
+if _SANITIZER_PATH not in sys.path:
+    sys.path.insert(0, _SANITIZER_PATH)
+try:
+    from secret_sanitizer import sanitize_secrets as _sanitize_secrets
+except Exception:
+    def _sanitize_secrets(text):
+        return text
+
 def log(msg):
+    msg = _sanitize_secrets(str(msg))
     print(f"[{datetime.now().strftime('%H:%M:%S')}] [GeminiAgent] {msg}")
 
 def load_memory():

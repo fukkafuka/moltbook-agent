@@ -41,7 +41,17 @@ MOLTBOOK_API_KEY = os.environ.get("MOLTBOOK_API_KEY")
 MOLTBOOK_BASE = "https://www.moltbook.com/api/v1"
 BONSAI_BASE = "http://127.0.0.1:11436"
 
+_SANITIZER_PATH = os.path.expanduser("~/.config/ai-keys")
+if _SANITIZER_PATH not in sys.path:
+    sys.path.insert(0, _SANITIZER_PATH)
+try:
+    from secret_sanitizer import sanitize_secrets as _sanitize_secrets
+except Exception:
+    def _sanitize_secrets(text):
+        return text
+
 def log(msg):
+    msg = _sanitize_secrets(str(msg))
     line = f"🦞[{datetime.now().strftime('%H:%M:%S')}] {msg}"
     with open("/Users/fk/Logs/agent_claude.log", "a") as f:
         f.write(line + "\n")

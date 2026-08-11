@@ -770,6 +770,18 @@ def run_doctor_check():
             data = data[0] if data else {}
         if not isinstance(data, dict):
             log(f"🏥 run_doctor_check: パースエラー、期待した辞書形式ではありません(型={type(data).__name__})")
+            try:
+                import os as _os
+                from datetime import datetime as _dt
+                _debug_dir = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "debug_raw")
+                _os.makedirs(_debug_dir, exist_ok=True)
+                _ts = _dt.now().strftime("%Y%m%d_%H%M%S")
+                _debug_path = _os.path.join(_debug_dir, f"doctor_parsefail_{_ts}.txt")
+                with open(_debug_path, "w", encoding="utf-8") as _f:
+                    _f.write(_sanitize_secrets(str(result)))
+                log(f"🏥 生応答を保存: debug_raw/doctor_parsefail_{_ts}.txt")
+            except Exception as _e:
+                log(f"🏥 生応答の保存に失敗: {_e}")
             return
         log("🏥 doctor: " + data.get("summary", "不明") + " / " + data.get("severity", "不明"))
         if data.get("action") != "fix":

@@ -12,3 +12,4 @@ memory.json
 commented.txt
 last_post.txt
 *.bak_*
+debug_raw/

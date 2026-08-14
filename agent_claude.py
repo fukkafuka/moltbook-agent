@@ -528,6 +528,13 @@ def regex_solve(challenge_text):  # noqa: replaced
     for w, v in NUMBER_WORDS_RX.items():
         dedup_lut[normalize(w)] = v
         dedup_lut[w] = v
+    # 恒久対応(2026-08-15): "five"のV→F置換難読化("fife"表記)を確認、既知の亜種スペルとして追加
+    # (通常の文字重複攪乱とは異なり、文字そのものが別の文字に置換されるため既存のnormalize/
+    #  サブシーケンス一致では検出できなかった。今後同種の亜種が見つかれば随時追加する)
+    WORD_ALIASES = {'fife': 5}
+    for w, v in WORD_ALIASES.items():
+        dedup_lut[normalize(w)] = v
+        dedup_lut[w] = v
 
     def lookup(token):
         # 直接マッチ
@@ -684,6 +691,16 @@ def regex_solve(challenge_text):  # noqa: replaced
                'leaves','remaining','resists','slows','reduced','opposes',
                'countered','counters','counter','remains','remain','back']}
 
+    def _has_noisy_keyword(kw):
+        # 恒久対応(2026-08-15): "per"→"sper", "for"→"sfor" のように前後に1文字だけ
+        # ノイズ文字が混入し、通常のトークン完全一致(deduped_tokens)では検出できないケースに対応
+        for t in tokens:
+            if t == kw:
+                return True
+            if len(t) == len(kw) + 1 and (t[1:] == kw or t[:-1] == kw):
+                return True
+        return False
+
     op = '+'
     if has_mul_symbol:
         op = '*'
@@ -691,7 +708,7 @@ def regex_solve(challenge_text):  # noqa: replaced
         op = '-'
     elif has_mul_word or mul_kws & deduped_tokens:
         op = '*'
-    elif {'per', 'for'} <= deduped_tokens:
+    elif ({'per', 'for'} <= deduped_tokens) or (_has_noisy_keyword('per') and _has_noisy_keyword('for')):
         # 2026-07-28: "at X per second for Y seconds"のような速度×時間パターンには
         # times/multiply等の明示的な乗算キーワードが一切含まれないため、
         # 「per」と「for」が両方出現する場合を暗黙の乗算シグナルとして扱う

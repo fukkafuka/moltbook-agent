@@ -30,6 +30,24 @@ CASES = [
         "15.00",
         "lobster単語内部ハイフン分断型攪乱(2026-07-28発見)",
     ),
+    (
+        "ThIs] LoO b-StEr~ SwImS^ aT/ fOoUr\\ MeTeR sPeR{ SeCoNd| A nD- sWaM sFoR< tHrEe> SeCoNdS, "
+        "HoW/ faR iS~ tHe LoO bStErrr?",
+        "12.00",
+        "per/forへの1文字ノイズ混入(sper/sfor)型攪乱(2026-08-15発見)",
+    ),
+    (
+        "A] lOoObBsT-eR ClAw^ ExErTs[ tHiR tY fIfE~ nEeWwToNs/ aNd] tHe^ OtHeR| ClAw ExErTs{ tWeLvE } "
+        "nEeWwToNs, Um] wHaTs~ ToTaL| FoRcE?",
+        "47.00",
+        "'five'のV→F置換難読化('fife'表記)(2026-08-15発見)",
+    ),
+    (
+        "A] lOoO bS-tEr SwImS^ iN/ cOoL wAtErS, ClAw FoRcE iS tHiRtY fIfE] nEu-ToNs~ AnD{ aNtEnNaA "
+        "tOuCh MeAsUrEs+ aN oXtRa tWeLvE\\ nEuToNs, WhAt Is] tHe ToTaL^ fOrCe?",
+        "47.00",
+        "'five'のV→F置換難読化('fife'表記)・文脈違い(2026-08-15発見)",
+    ),
 ]
 
 def main():

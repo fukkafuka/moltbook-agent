@@ -787,6 +787,8 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
+   - CRITICAL: If a hyphen - appears between two numeric expressions, interpret it as a subtraction operator and compute the difference.
+   - CRITICAL: When two numeric expressions are separated by a hyphen, the result should be the first number minus the second number.
    - CRITICAL: When the word decreases or decrease appears in a sentence, treat it as a subtraction operator: subtract the following number from the preceding number.
    - CRITICAL: When the word increases or increase appears, treat it as an addition operator: add the following number to the preceding number.
    - CRITICAL: When the word point (case‑insensitive, possibly obfuscated) appears between two number words, combine them into a single decimal number, using the first word as the integer part and the second as the fractional part.

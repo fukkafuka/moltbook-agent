@@ -20,7 +20,12 @@ SNS的な短文であり、distill_claude_authored.jsonlが想定する丁寧な
 
 使い方:
     cd ~/ai-agent/moltbook
-    python3 extract_moltbook_topics.py [--min-quality 1] [--limit 200]
+    python3 extract_moltbook_topics.py [--min-quality 0] [--limit 200]
+
+【注意】実データ確認の結果、postsテーブルのquality_score列は現状常に0で
+記録されている(実質未使用)。--min-qualityのデフォルトを1のままにすると
+posts由来の候補が全滅するため、デフォルトは0にしてある。将来quality_score
+が実際に使われるようになった場合は、必要に応じて閾値を引き上げること。
 
 出力:
     moltbook_topic_candidates.jsonl (このスクリプトと同じディレクトリ)
@@ -120,8 +125,9 @@ def fetch_candidates(conn, min_quality: int):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--min-quality", type=int, default=1,
-                         help="postsのquality_score下限 (default: 1)")
+    parser.add_argument("--min-quality", type=int, default=0,
+                         help="postsのquality_score下限 (default: 0。quality_score列は現状常に0固定で"
+                              "記録されているため、1にするとposts由来の候補が全滅する点に注意)")
     parser.add_argument("--limit", type=int, default=None,
                          help="出力件数の上限 (default: 無制限)")
     args = parser.parse_args()

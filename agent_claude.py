@@ -688,8 +688,14 @@ def regex_solve(challenge_text):  # noqa: replaced
     # キーワードもnormalizeして比較
     mul_kws = {normalize(w) for w in ['multiplies','multiply','times','doubled','product','strikes','strike','together','each','applied']}
     sub_kws = {normalize(w) for w in ['removes','remove','loses','lose','lost','minus','subtracts','subtract',
-               'leaves','remaining','resists','slows','reduced','opposes',
+               'leaves','remaining','resists','reduced','opposes',
                'countered','counters','counter','remains','remain','back']}
+    # 恒久対応(2026-08-25): "slows"はnormalize()すると"slow"になり、"sLoW~ aNd GrAcEfUl"のような
+    # 単なるデコイ描写語(泳ぎ方の形容詞、演算とは無関係)の"slow"(4文字、繰り返しなし)と衝突して
+    # 誤って減算判定されてしまう問題が判明。"slow"と"slows"はnormalize()後は同じ文字列になり
+    # 区別できないため、set一致ではなく実トークンの長さで判定する(デコイの"slow"は常に4文字、
+    # 演算意図の"slows"は5文字以上になる)
+    has_slows_word = any(len(t) >= 5 and normalize(t) == 'slow' for t in tokens)
 
     def _has_noisy_keyword(kw):
         # 恒久対応(2026-08-15): "per"→"sper", "for"→"sfor" のように前後に1文字だけ
@@ -704,7 +710,7 @@ def regex_solve(challenge_text):  # noqa: replaced
     op = '+'
     if has_mul_symbol:
         op = '*'
-    elif has_sub_word or sub_kws & deduped_tokens:
+    elif has_sub_word or sub_kws & deduped_tokens or has_slows_word:
         op = '-'
     elif has_mul_word or mul_kws & deduped_tokens:
         op = '*'
@@ -713,6 +719,10 @@ def regex_solve(challenge_text):  # noqa: replaced
         # times/multiply等の明示的な乗算キーワードが一切含まれないため、
         # 「per」と「for」が両方出現する場合を暗黙の乗算シグナルとして扱う
         # (sub_kwsが先に優先されるため、明示的な減算表現がある場合はそちらが優先される)
+        op = '*'
+    elif ('per' in deduped_tokens or _has_noisy_keyword('per')) and ('uses' in deduped_tokens or 'use' in deduped_tokens):
+        # 恒久対応(2026-08-25): "X notons per claw and it uses N claws"のように、
+        # forを伴わず「per」と「uses」の組み合わせだけで暗黙の乗算を表すパターンに対応
         op = '*'
 
     a, b = numbers[0], numbers[1]

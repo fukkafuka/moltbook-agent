@@ -48,6 +48,18 @@ CASES = [
         "47.00",
         "'five'のV→F置換難読化('fife'表記)・文脈違い(2026-08-15発見)",
     ),
+    (
+        "A] lO^bSt-Er LooObsTtEr S[wImS\\ LiKe Um, sLoW~ aNd GrAcEfUl, AnD hAs ClAw-FoRcE oF tHrIrTy] "
+        "nOoOtOnS, BuT {tHe} OtHeR ClAw A/ddSs FiFfTeEn~ nOoOtOnS, WhAt Is ToTaL F[oRcE|?",
+        "45.00",
+        "デコイ語'slow'が減算キーワード'slows'とnormalize()後に衝突する誤爆(2026-08-25発見)",
+    ),
+    (
+        "A] lO.bStErS^ clAaWwW fOrCe-Is/ tWeLvE] noOtOnS~ pEr/ clAaW| aNd{ it/ uSeS- fOuR] clAwws<, "
+        "hOw^ mUcH/ tOtAl} fOrCe- iS? um",
+        "48.00",
+        "'for'を伴わない'per'+'uses'型の暗黙乗算パターン(2026-08-25発見)",
+    ),
 ]
 
 def main():

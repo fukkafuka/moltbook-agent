@@ -60,6 +60,18 @@ CASES = [
         "48.00",
         "'for'を伴わない'per'+'uses'型の暗黙乗算パターン(2026-08-25発見)",
     ),
+    (
+        "A] L o-BsT^eR S wImS[ aT/ tW-eNnYy ThReE} mE^tErS\\ pEr| sEcOnD, aNd- SlO wS} bY/ "
+        "SeV eN~, wHaT{ Is- ThE/ nEw^ VeLo awCiTeE?",
+        "16.00",
+        "単語途中にスペースが入る'SlO wS'型の分断+減算キーワード(2026-09-13記録、現行コードで正解を確認)",
+    ),
+    (
+        "A] lO oBbSsT-tEr S[wIiMmS aT tWeNtY fOoTuM sPeEd, Um, bUt ThIs] lOoObBsStEr ExErTs "
+        "FoRtY NoOoToNs + ThIrTy NoOoToNs On ItS ClAwS, hOw MuCh ToTaL FoRce Is ThErE? {errr} ~",
+        "70.00",
+        "架空単位語'footum'直前のデコイ数値(twenty)を除外し、先頭2つを誤って使う問題(2026-09-25発見)",
+    ),
 ]
 
 def main():

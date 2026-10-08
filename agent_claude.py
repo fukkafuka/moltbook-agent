@@ -640,6 +640,19 @@ def regex_solve(challenge_text):  # noqa: replaced
         if not found:
             i += 1
 
+    # ★ デコイ数値除去: "twenty footum speed"のように、架空の単位語(本物の単位
+    # (notons/newtons/meters等)ではない、挑戦文のフレーバー描写専用の造語)が
+    # 直後に続く数値は、実際の計算とは無関係なフレーバー文の一部とみなして除外する
+    NOISE_UNIT_WORDS = {normalize(w) for w in ['footum']}
+    if numbers:
+        decoy_remove = set()
+        for idx, end_pos in enumerate(number_end_positions):
+            if end_pos < len(tokens) and normalize(tokens[end_pos]) in NOISE_UNIT_WORDS:
+                decoy_remove.add(idx)
+        if decoy_remove:
+            numbers = [n for idx, n in enumerate(numbers) if idx not in decoy_remove]
+            number_end_positions = [p for idx, p in enumerate(number_end_positions) if idx not in decoy_remove]
+
     # ★ 訂正パターン適用: correction_keyword直前の数値を撤回（直後の数値で置換）
     if correction_positions and len(numbers) >= 2:
         to_remove = set()

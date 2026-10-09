@@ -380,7 +380,7 @@ def apply_prompt_rules(rules):
     return True
 
 def run():
-    pid_file = "/Users/fk/ai-agent/logs/agent_log_doctor.pid"
+    pid_file = "/Users/fk/Logs/agent_log_doctor.pid"
     # 2026-08-05: pid_fileの親ディレクトリが存在しない場合、open()がFileNotFoundErrorで
     # クラッシュしrun()全体(=doctorの分析処理そのもの)が実行されなくなるバグがあった。
     # 多重起動防止ロック自体が失敗しても、本来の分析処理は必ず実行されるようにする。

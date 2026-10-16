@@ -174,8 +174,13 @@ def openrouter_think(prompt, model=None):
                 log(f"agent_claude OpenRouter {m} failed: {data.get('error',{}).get('message','unknown')}")
                 last_error = data
                 continue
+            content = (data["choices"][0].get("message") or {}).get("content")
+            if not content or not str(content).strip():
+                log(f"agent_claude OpenRouter {m} returned empty content, trying next model")
+                last_error = "empty content"
+                continue
             log(f"agent_claude OpenRouter using: {m}")
-            return data["choices"][0]["message"]["content"]
+            return content
         except Exception as e:
             log(f"agent_claude OpenRouter {m} error: {e}")
             last_error = e
@@ -185,8 +190,11 @@ def openrouter_think(prompt, model=None):
             continue
     raise Exception(f"OpenRouter all models failed: {last_error}")
 
+_last_think_backend = "remote"
+
 def think(prompt):
-    global _groq_tokens_remaining
+    global _groq_tokens_remaining, _last_think_backend
+    _last_think_backend = "remote"
     # トークン残量が少ない場合は最初からOpenRouterを使用
     if _groq_tokens_remaining <= GROQ_TOKEN_SWITCH:
         log(f"🔄 Groqトークン残量({_groq_tokens_remaining})不足 → OpenRouter使用")
@@ -207,9 +215,23 @@ def think(prompt):
             log(f"OpenRouter failed ({e2}), falling back to Bonsai")
             if bonsai_available():
                 log("agent_claude Using Bonsai (local) as fallback")
+                _last_think_backend = "bonsai"
                 return bonsai_think(prompt)
             log("agent_claude Bonsai unavailable, skipping this round")
             raise
+
+def _compact_memory(max_chars=1500):
+    """Groq 等の TPM 制限に収まるよう、system プロンプトに入れるメモリを縮小する。
+    各リストは直近10件に絞り、全体を max_chars 文字以内にする。"""
+    try:
+        m = load_memory()
+    except Exception:
+        return "{}"
+    out = {}
+    for k, v in (m or {}).items():
+        out[k] = v[-10:] if isinstance(v, list) else v
+    s = json.dumps(out, ensure_ascii=False)
+    return s if len(s) <= max_chars else s[:max_chars] + "...(truncated)"
 
 def groq_think(prompt, required=False):
     global _groq_tokens_remaining
@@ -218,7 +240,7 @@ def groq_think(prompt, required=False):
         json={
             "model": GROQ_MODEL,
             "messages": [
-                {"role": "system", "content": f"You are fujikatsu-openclaw, an AI agent on Moltbook. Curious, friendly, thoughtful. You engage with other AI agents about ideas, technology, and philosophy. Always respond in JSON format only. Memory: {json.dumps(load_memory(), ensure_ascii=False)}"},
+                {"role": "system", "content": f"You are fujikatsu-openclaw, an AI agent on Moltbook. Curious, friendly, thoughtful. You engage with other AI agents about ideas, technology, and philosophy. Always respond in JSON format only. Memory: {_compact_memory()}"},
                 {"role": "user", "content": prompt}
             ],
             "max_tokens": 800,
@@ -757,52 +779,50 @@ STRICT RULES:
    - twenty=20 thirty=30 forty=40 fifty=50 sixty=60 seventy=70 eighty=80 ninety=90
    - Repeated/doubled letters = obfuscation only: "fIfFeEe"=five=5, "tTwWeEnNtTyY"=twenty=20
    - Obfuscated compound numbers: "ThI rTy FiV e"=thirty five=35, "tWeNtY tHrEe"=twenty three=23. NEVER read only the last word.
-   - CRITICAL: Scan ALL sequential number words FIRST, then combine.
-   - CRITICAL: Even if symbols/spaces appear BETWEEN number words, they are still ONE compound number.
-   - CRITICAL: Character-level spaces are also obfuscation.
-   - CRITICAL: ALL tens+ones combinations are ONE number.
-   - CRITICAL: Combine compound numbers BEFORE applying any operator.
-   - CRITICAL: Do NOT apply math operator precedence to number words.
-   - CRITICAL: When the question asks for a TOTAL or SUM, ALWAYS COMBINE ALL NUMBER WORDS AND PERFORM THE CORRESPONDING OPERATION.
-   - CRITICAL: When scanning for number words, first remove ALL non-alphanumeric characters, convert to lower case, and concatenate the characters into a single string.
-   - CRITICAL: If any multiplication symbol (*) appears anywhere in the raw text, treat the operation as multiplication and ignore all other operator keywords.
-   - CRITICAL: When the phrase X newtons AND N claws (or any countable noun) appears, interpret it as X * N.
-   - CRITICAL: When a number word is split by non-alphabetic characters but appears consecutively, treat the entire sequence as a single compound number.
-   - CRITICAL: Do not infer missing tens unless the word teen is explicitly present.
-   - CRITICAL: If the phrase per appears between two numbers, interpret it as multiplication only when a countable noun follows the second number.
-   - CRITICAL: When the text mentions multiple subjects and one of them increases or adds a value, treat that value as an additional positive contribution to the overall total.
-   - CRITICAL: If a sentence contains the keyword another or any indicator of a second distinct entity, any numeric value associated with that entity should be included as a separate operand in the overall operation.
-   - CRITICAL: After forming the continuous string, identify sequential tens-word followed immediately by a ones-word as ONE compound number.
-   - CRITICAL: When scanning for number words, first concatenate all characters and then identify sequential tens and ones words as ONE compound number.
-   - CRITICAL: After forming compound numbers, replace the original word sequence with the numeric value before searching for operator keywords.
-   - CRITICAL: When detecting compound numbers, ensure that the agent checks for sequential number words separated by non-alphanumeric characters, mixed caps, or symbols.
-   - CRITICAL: Improve the agents ability to detect operators hidden in non-standard formats.
-   - CRITICAL: Develop a more robust method for distinguishing between tens+ones combinations and separate numbers.
-   - CRITICAL: When the text contains a number word followed by the word claw(s) and also mentions a force per claw, interpret this as multiplication.
-   - CRITICAL: Ignore all non-alphanumeric characters, including spaces, and mixed caps.
-   - CRITICAL: Combine sequential number words, even if symbols/spaces appear between them.
-   - CRITICAL: Handle repeated/doubled letters as obfuscation only.
-   - CRITICAL: Treat all number words as sequential unless specifically indicated by a - symbol.
-   - CRITICAL: When a + symbol is present, always sum the values of all number words preceding it.
-   - CRITICAL: Treat all sequential number words as a single unit, even if they are separated by symbols or spaces.
-   - CRITICAL: When reduction is mentioned, always subtract it from the total force of the claw, not just from the force of one claw.
-   - CRITICAL: Add rule to handle sequential number words with hyphens or underscores.
-   - CRITICAL: Introduce rule to prioritize addition operation when multiple operations are possible.
-   - CRITICAL: Treat all number words as a single unit, even if they appear separately in the text.
+   - CRITICAL: Scan the entire text for number words, ignoring all non‑alphanumeric characters, mixed case, and repeated letters.
+   - CRITICAL: After removing separators, concatenate the remaining characters into a single string for easier parsing.
+   - CRITICAL: Identify sequential tens words followed immediately by ones words as a single compound number.
+   - CRITICAL: Treat hyphens, underscores, spaces, and other separators as obfuscation; they do not split number words.
+   - CRITICAL: If a number word is split by non‑alphabetic characters but appears consecutively, combine it into one compound number.
+   - CRITICAL: When a compound number is formed, replace the original word sequence with its numeric value before searching for operators.
+   - CRITICAL: If a multiplication symbol (*) appears anywhere in the raw text, treat the entire operation as multiplication and ignore other operator keywords.
+   - CRITICAL: When the phrase "product" directly precedes numbers, interpret it as a multiplication keyword.
+   - CRITICAL: If the word "per" appears between two numbers, treat it as multiplication only when a countable noun follows the second number.
+   - CRITICAL: When the phrase "X newtons AND N claws" appears, interpret it as X * N.
+   - CRITICAL: When a number word is followed by the word "claw(s)" and a force per claw is mentioned, interpret this as multiplication.
+   - CRITICAL: If the word "decreases" or "decrease" appears, treat it as a subtraction operator: subtract the following number from the preceding number.
+   - CRITICAL: If the word "increases" or "increase" appears, treat it as an addition operator: add the following number to the preceding number.
+   - CRITICAL: If a hyphen (-) appears between two numeric expressions, interpret it as a subtraction operator and compute the difference.
+   - CRITICAL: If the word "point" (case‑insensitive, possibly obfuscated) appears between two number words, combine them into a single decimal number.
+   - CRITICAL: When the phrase "Net Force" appears, compute the difference between the first and second numeric values encountered.
+   - CRITICAL: When the question asks for a total or sum, combine all number words into compound numbers and perform the corresponding addition.
    - CRITICAL: When the question asks for a total or sum, always perform addition on the number words, even if they are compound numbers.
-   - CRITICAL: If a number word is followed by another number word, always combine them into a single compound number.
-   - CRITICAL: If a number word is preceded by a word that indicates a quantity or a range, always consider the number word as part of a compound number.
-   - CRITICAL: Treat all symbols and spaces as part of the number words, even if they appear between them.
-   - CRITICAL: Combine all sequential number words first, then remove symbols and spaces, and finally convert to numbers.
-   - CRITICAL: Treat consecutive number words as a single compound number, even if symbols or spaces appear between them.
-   - CRITICAL: Remove all symbols and mixed caps before processing the challenge, and treat repeated/doubled letters as obfuscation only.
-   - CRITICAL: Ignore all punctuation marks and special characters at the end of the challenge, as they are likely noise.
-   - CRITICAL: For compound numbers, always prioritize the largest number word first, and then combine with the next sequential number word.
-   - CRITICAL: TREAT lo as 50.
-   - CRITICAL: TREAT ALL SEPARATORS AS OBSCURATION: Ignore all separators (spaces, hyphens, underscores, etc.) between number words.
-   - CRITICAL: HANDLE TENS+ONES COMBINATIONS WITH PRIORITY: When encountering a tens+ones combination, prioritize it over other number words.
-   - CRITICAL: TREAT product as a multiplication keyword only when it directly precedes the numbers being multiplied.
-   - CRITICAL: TREAT AND AS A DEFAULT OPERATION IF NO
+   - CRITICAL: When a + symbol is present, always sum the values of all number words preceding it.
+   - CRITICAL: When the word "another" or any indicator of a second distinct entity appears, include any numeric value associated with that entity as a separate operand.
+   - CRITICAL: When multiple subjects are mentioned and one increases or adds a value, treat that value as an additional positive contribution to the overall total.
+   - CRITICAL: Treat the word "and" as a default addition operator if no other operator is specified.
+   - CRITICAL: Treat the word "and" as a separator for addition, but also consider the + symbol as a valid operator for addition.
+   - CRITICAL: When the phrase "multiplied by" appears, prioritize the multiplication operation over any addition operations in the same phrase.
+   - CRITICAL: When a number word is preceded by a word indicating a quantity or a range, consider the number word as part of a compound number.
+   - CRITICAL: When a number word is followed by another number word, always combine them into a single compound number.
+   - CRITICAL: Treat all number words as sequential unless a hyphen explicitly separates them.
+   - CRITICAL: When a compound number is formed, prioritize the largest number word first, then combine with the next sequential number word.
+   - CRITICAL: When encountering a tens+ones combination, prioritize it over other number words.
+   - CRITICAL: When multiple tens+ones combinations are present, prioritize the combination with the highest tens value.
+   - CRITICAL: Treat the word "lo" as 50.
+   - CRITICAL: When the word "point" appears between two number words, ignore any intervening symbols or spaces and treat the preceding and following number words as a single numeric token.
+   - CRITICAL: Treat the symbols * and - as separators between number words, not as multiplication or subtraction operators, unless context dictates otherwise.
+   - CRITICAL: When the phrase "Net Force" appears, compute the difference between the first and second numeric values encountered in the challenge.
+   - CRITICAL: When the text contains a number word followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication.
+   - CRITICAL: When the text contains a number word followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication.
+   - CRITICAL: When the text contains a number word followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication.
+   - CRITICAL: When the text contains a number word followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication.
+   - CRITICAL: When the text contains a number word followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication.
+   - CRITICAL: When the text contains a number word followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication.
+   - CRITICAL: When the text contains a number word followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication.
+   - CRITICAL: When the text contains a number word followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication.
+   - CRITICAL: When the text contains a number word followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication.
+   - CRITICAL: When the text contains a number word followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication.
 3. OPERATION DETECTION:
    - ADDITION (+): "adds", "plus", "and", "total", "gains", "increases by", "during fight", "during dominance fight"
    - CRITICAL EXCEPTION: If question asks "how many remain" or "what remains" or "remaining force", it is SUBTRACTION regardless of dominance fight. Example: "twenty three newtons, during dominance fight loses seven, how many remain" = 23 - 7 = 16
@@ -810,20 +830,6 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
-   - CRITICAL: If a hyphen - appears between two numeric expressions, interpret it as a subtraction operator and compute the difference.
-   - CRITICAL: When two numeric expressions are separated by a hyphen, the result should be the first number minus the second number.
-   - CRITICAL: When the word decreases or decrease appears in a sentence, treat it as a subtraction operator: subtract the following number from the preceding number.
-   - CRITICAL: When the word increases or increase appears, treat it as an addition operator: add the following number to the preceding number.
-   - CRITICAL: When the word point (case‑insensitive, possibly obfuscated) appears between two number words, combine them into a single decimal number, using the first word as the integer part and the second as the fractional part.
-   - CRITICAL: If point is present, ignore any intervening symbols or spaces and treat the preceding and following number words as a single numeric token.
-   - CRITICAL: Treat the symbols * and - as separators between number words, not as multiplication or subtraction operators.
-   - CRITICAL: When the phrase Net Force appears, compute the difference between the first and second numeric values encountered in the challenge.
-   - CRITICAL: TREAT ALL SEPARATORS AS OBSCURATION: Ignore all spaces, hyphens, and other separators between number words.
-   - CRITICAL: SCAN FOR TENS+ONES COMBINATIONS FIRST: Prioritize identifying tens+ones combinations before scanning for other number words.
-   - CRITICAL: TREAT ALL SEPARATORS AS OBSCURATION: Ignore all separators (spaces, tabs, newlines, etc.) between number words.
-   - CRITICAL: HANDLE TENS+ONES COMBINATIONS WITH PRIORITY: When multiple tens+ones combinations are present, prioritize the combination with the highest tens value.
-   - CRITICAL: Treat and as a separator for addition, but also consider plus as a valid operator for addition.
-   - CRITICAL: When encountering a phrase with multiplied by, always prioritize the multiplication operation over any addition operations in the same phrase.
 4. FORMAT: Return answer as float with 2 decimal places (e.g. 42.00)
 
 Examples:
@@ -1151,6 +1157,36 @@ def check_post_engagement():
         log(f"📊 engagement error: {e}")
 
 
+_BAD_CONTENT_RE = re.compile(r"uuid-from-above|upvotes|comments:|post_id|[{}\[\]]", re.IGNORECASE)
+
+def validate_decision(data, valid_ids, backend):
+    """LLMの判断を検証する。戻り値は (ok, 理由)。
+    - post_id は今回取得したフィードに実在するIDのみ許可（全バックエンド）
+    - Bonsai（フォールバック）由来の投稿は禁止
+    - Bonsai 由来のコメントは長さ・文数・メタデータ混入を検査
+    """
+    action = data.get("action")
+    if action == "post":
+        if backend == "bonsai":
+            return False, "bonsai fallback: post blocked"
+        return True, ""
+    if action != "comment":
+        return False, f"unknown action: {action}"
+    pid = str(data.get("post_id", ""))
+    if pid not in valid_ids:
+        return False, f"post_id not in feed: {pid[:40]}"
+    content = (data.get("content") or "").strip()
+    if not content:
+        return False, "empty comment"
+    if backend == "bonsai":
+        if not (20 <= len(content) <= 400):
+            return False, f"bonsai comment length out of range: {len(content)}"
+        if _BAD_CONTENT_RE.search(content):
+            return False, "bonsai comment contains metadata or placeholder"
+        if len(re.findall(r"[.!?。]", content)) > 3:
+            return False, "bonsai comment has more than 3 sentences"
+    return True, ""
+
 def run():
     log("🚀🚀🚀agent_claude🚀🚀🚀Starting Moltbook agent🚀🚀🚀")
     home = moltbook_get("/home")
@@ -1287,6 +1323,7 @@ Respond with a single JSON object only:
 {{"action": "post", "title": "your provocative title", "content": "your post content"}}"""
 
     else:
+        valid_id_line = "\n\nValid post_id values (copy exactly one of these): " + ", ".join(str(p.get("id")) for p in posts if p.get("id"))
         prompt = f"""You are fujikatsu-openclaw, an AI agent on Moltbook. Here are recent posts sorted by engagement:
 
 {feed_summary}
@@ -1299,10 +1336,11 @@ Rules for your comment:
 - Add a genuine perspective, build on or challenge what was said
 - Sound natural, like a real participant in conversation — NOT a formal response
 - Do NOT just ask a question — make a statement with your view
-- If you disagree, say so directly but respectfully{dream_context}
+- If you disagree, say so directly but respectfully
+- Never include numbers, metadata, or the post title in the comment{dream_context}{valid_id_line}
 
 Respond with a single JSON object only:
-{{"action": "comment", "post_id": "uuid-from-above", "content": "your comment"}}"""
+{{"action": "comment", "post_id": "one value from the valid list", "content": "your comment"}}"""
 
     log("agent_claude Thinking...")
     try:
@@ -1310,7 +1348,11 @@ Respond with a single JSON object only:
     except Exception as e:
         log(f"agent_claude think() failed: {e}, skipping this round")
         return
+    if not isinstance(response, str) or not response.strip():
+        log("agent_claude Empty response from LLM, skipping this round.")
+        return
     log(f"agent_claude Decision: {response}")
+    _resp_backend = _last_think_backend
 
     if should_post:
         for attempt in range(2):
@@ -1335,6 +1377,7 @@ Respond JSON only: {{"score": 7, "reason": "..."}}"""
                             break
                         log(f"agent_claude Score too low, regenerating... (attempt {attempt+1})")
                         response = think(prompt)
+                        _resp_backend = _last_think_backend
                 except Exception as e:
                     log(f"agent_claude Quality check failed: {e}")
                     break
@@ -1365,6 +1408,12 @@ Respond JSON only: {{"score": 7, "reason": "..."}}"""
 
     if isinstance(data.get("post_id"), dict):
         data["post_id"] = data["post_id"].get("id", "")
+
+    _valid_ids = {str(p.get("id")) for p in posts if p.get("id")}
+    _ok, _reason = validate_decision(data, _valid_ids, _resp_backend)
+    if not _ok:
+        log(f"agent_claude 判断を破棄（{_resp_backend}）: {_reason}")
+        return
 
     if data["action"] == "post":
         title = data.get("title") or data.get("content", "")[:80]

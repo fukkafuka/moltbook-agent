@@ -830,6 +830,8 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
+   - CRITICAL: Only treat a word as a number if, after removing noise and repeated letters, it matches exactly one of the predefined number words (one, two, …, ninety).
+   - CRITICAL: Do not combine number words unless they are immediately adjacent in the original text; ignore any intervening non‑numeric words.
    - CRITICAL: When encountering a slash, hyphen, or other separator between two or more number words, treat the entire sequence as a single compound number and combine them according to the standard mapping (e.g., Ee-IgH/tEeN → eighteen → 18).
    - CRITICAL: If a token contains a mix of letters that, after removing non‑alphanumeric characters and repeated letters, matches a known number word, interpret it as that number regardless of surrounding punctuation.
    - CRITICAL: When a number word is split by a hyphen or slash, treat the entire sequence of letters (ignoring the punctuation) as a single number word and combine it with adjacent number words before evaluation.

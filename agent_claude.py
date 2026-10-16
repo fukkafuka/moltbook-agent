@@ -781,12 +781,12 @@ STRICT RULES:
    - Obfuscated compound numbers: "ThI rTy FiV e"=thirty five=35, "tWeNtY tHrEe"=twenty three=23. NEVER read only the last word.
    - CRITICAL: Scan the entire text for number words, ignoring all non‑alphanumeric characters, mixed case, and repeated letters.
    - CRITICAL: After removing separators, concatenate the remaining characters into a single string for easier parsing.
-   - CRITICAL: Identify sequential tens words followed immediately by ones words as a single compound number.
-   - CRITICAL: Treat hyphens, underscores, spaces, and other separators as obfuscation; they do not split number words.
+   - CRITICAL: Treat hyphens, underscores, spaces, slashes, and other separators as obfuscation; they do not split number words unless a hyphen explicitly separates numeric expressions.
    - CRITICAL: If a number word is split by non‑alphabetic characters but appears consecutively, combine it into one compound number.
    - CRITICAL: When a compound number is formed, replace the original word sequence with its numeric value before searching for operators.
    - CRITICAL: If a multiplication symbol (*) appears anywhere in the raw text, treat the entire operation as multiplication and ignore other operator keywords.
    - CRITICAL: When the phrase "product" directly precedes numbers, interpret it as a multiplication keyword.
+   - CRITICAL: When the phrase "multiplied by" appears, prioritize the multiplication operation over any addition operations in the same phrase.
    - CRITICAL: If the word "per" appears between two numbers, treat it as multiplication only when a countable noun follows the second number.
    - CRITICAL: When the phrase "X newtons AND N claws" appears, interpret it as X * N.
    - CRITICAL: When a number word is followed by the word "claw(s)" and a force per claw is mentioned, interpret this as multiplication.
@@ -802,7 +802,6 @@ STRICT RULES:
    - CRITICAL: When multiple subjects are mentioned and one increases or adds a value, treat that value as an additional positive contribution to the overall total.
    - CRITICAL: Treat the word "and" as a default addition operator if no other operator is specified.
    - CRITICAL: Treat the word "and" as a separator for addition, but also consider the + symbol as a valid operator for addition.
-   - CRITICAL: When the phrase "multiplied by" appears, prioritize the multiplication operation over any addition operations in the same phrase.
    - CRITICAL: When a number word is preceded by a word indicating a quantity or a range, consider the number word as part of a compound number.
    - CRITICAL: When a number word is followed by another number word, always combine them into a single compound number.
    - CRITICAL: Treat all number words as sequential unless a hyphen explicitly separates them.
@@ -810,19 +809,19 @@ STRICT RULES:
    - CRITICAL: When encountering a tens+ones combination, prioritize it over other number words.
    - CRITICAL: When multiple tens+ones combinations are present, prioritize the combination with the highest tens value.
    - CRITICAL: Treat the word "lo" as 50.
+   - CRITICAL: When scanning for number words, if two or more consecutive tokens (ignoring punctuation and case) together form a valid compound number, combine them into a single number before parsing.
+   - CRITICAL: Only treat a token as a number if the entire cleaned token matches a known number word; ignore tokens that contain number substrings but are not complete number words.
+   - CRITICAL: When scanning for number words, treat any non‑alphanumeric separator (including /, -, ], etc.) as a potential split point and attempt to re‑combine adjacent fragments that together form a valid number word.
+   - CRITICAL: If a token contains a mix of letters that, after removing non‑alphanumeric characters and repeated letters, matches a known number word, interpret it as that number regardless of surrounding punctuation.
+   - CRITICAL: When a number word is split by a hyphen or slash, treat the entire sequence of letters (ignoring the punctuation) as a single number word and combine it with adjacent number words before evaluation.
+   - CRITICAL: If a number word contains internal punctuation (e.g., hyphens, slashes, or mixed case), first remove all non‑letter characters, then apply the compound number combination rules to the resulting contiguous letter sequence.
+   - CRITICAL: Do not combine number words unless they are immediately adjacent in the original text; ignore any intervening non‑numeric words.
+   - CRITICAL: When encountering a slash, hyphen, or other separator between two or more number words, treat the entire sequence as a single compound number and combine them according to the standard mapping.
+   - CRITICAL: When a number word is followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication (duplicate rule consolidated).
    - CRITICAL: When the word "point" appears between two number words, ignore any intervening symbols or spaces and treat the preceding and following number words as a single numeric token.
-   - CRITICAL: Treat the symbols * and - as separators between number words, not as multiplication or subtraction operators, unless context dictates otherwise.
-   - CRITICAL: When the phrase "Net Force" appears, compute the difference between the first and second numeric values encountered in the challenge.
-   - CRITICAL: When the text contains a number word followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication.
-   - CRITICAL: When the text contains a number word followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication.
-   - CRITICAL: When the text contains a number word followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication.
-   - CRITICAL: When the text contains a number word followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication.
-   - CRITICAL: When the text contains a number word followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication.
-   - CRITICAL: When the text contains a number word followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication.
-   - CRITICAL: When the text contains a number word followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication.
-   - CRITICAL: When the text contains a number word followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication.
-   - CRITICAL: When the text contains a number word followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication.
-   - CRITICAL: When the text contains a number word followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication.
+   - CRITICAL: When the phrase "Net Force" appears, compute the difference between the first and second numeric values encountered in the challenge (duplicate rule consolidated).
+   - CRITICAL: When the text contains a number word followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication (duplicate rule consolidated).
+   - CRITICAL: When scanning for number words, only accept a token as a number if the entire token, after removing non‑alphanumeric characters, matches one of the defined number words.
 3. OPERATION DETECTION:
    - ADDITION (+): "adds", "plus", "and", "total", "gains", "increases by", "during fight", "during dominance fight"
    - CRITICAL EXCEPTION: If question asks "how many remain" or "what remains" or "remaining force", it is SUBTRACTION regardless of dominance fight. Example: "twenty three newtons, during dominance fight loses seven, how many remain" = 23 - 7 = 16
@@ -830,18 +829,6 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
-   - CRITICAL: When scanning for number words, if two or more consecutive tokens (ignoring punctuation and case) together form a valid compound number (e.g., twenty from tWeN tY or thirty five from ThI rTy FiV e), combine them into a single number before parsing.
-   - CRITICAL: Only treat a token as a number if the entire cleaned token matches a known number word; ignore tokens that contain number substrings but are not complete number words (e.g., noOtOnS, nEuT/OnS).
-   - CRITICAL: When scanning for number words, treat any non‑alphanumeric separator (including /, -, ], etc.) as a potential split point and attempt to re‑combine adjacent fragments that together form a valid number word.
-   - CRITICAL: Only accept a word as a number if the entire word (after removing non‑alphanumeric characters and normalizing case) matches a known number word; ignore words that contain number substrings but are not themselves number words.
-   - CRITICAL: When scanning for number words, if two or more consecutive tokens (ignoring punctuation and case) together form a valid compound number (e.g., twenty + three = 23), combine them into a single number instead of treating them separately.
-   - CRITICAL: Only count a token as a number if the entire token, after removing non‑alphanumeric characters, matches one of the defined number words. Tokens that contain number substrings but are not complete number words (e.g., neutons, noOtOnS) should be ignored.
-   - CRITICAL: Only treat a word as a number if, after removing noise and repeated letters, it matches exactly one of the predefined number words (one, two, …, ninety).
-   - CRITICAL: Do not combine number words unless they are immediately adjacent in the original text; ignore any intervening non‑numeric words.
-   - CRITICAL: When encountering a slash, hyphen, or other separator between two or more number words, treat the entire sequence as a single compound number and combine them according to the standard mapping (e.g., Ee-IgH/tEeN → eighteen → 18).
-   - CRITICAL: If a token contains a mix of letters that, after removing non‑alphanumeric characters and repeated letters, matches a known number word, interpret it as that number regardless of surrounding punctuation.
-   - CRITICAL: When a number word is split by a hyphen or slash, treat the entire sequence of letters (ignoring the punctuation) as a single number word and combine it with adjacent number words before evaluation.
-   - CRITICAL: If a number word contains internal punctuation (e.g., hyphens, slashes, or mixed case), first remove all non‑letter characters, then apply the compound number combination rules to the resulting contiguous letter sequence.
 4. FORMAT: Return answer as float with 2 decimal places (e.g. 42.00)
 
 Examples:

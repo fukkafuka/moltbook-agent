@@ -829,6 +829,8 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
+   - CRITICAL: Before parsing, strip all non‑alphanumeric characters (including punctuation and whitespace) from the challenge text, then collapse any repeated letters within each token to a single instance.
+   - CRITICAL: After cleaning, scan the entire string for contiguous sequences of alphabetic characters that match the defined number words, and combine them into a single numeric value before performing any arithmetic.
 4. FORMAT: Return answer as float with 2 decimal places (e.g. 42.00)
 
 Examples:

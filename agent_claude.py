@@ -829,6 +829,8 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
+   - CRITICAL: When scanning for number words, treat any sequence of alphabetic characters that, after removing non‑alphanumeric characters and collapsing repeated letters, matches a known number word as a single token, even if it is split by punctuation or whitespace.
+   - CRITICAL: If a number word appears within a longer obfuscated string (e.g., tW/eNtY fIvE), first remove all non‑alphanumeric characters, collapse repeated letters, then parse the resulting string for the longest matching number word sequence from left to right.
    - CRITICAL: When scanning for number words, only accept tokens that match the exact list of valid number words (one to ninety). Discard any token that does not match this list, even if it resembles a number word.
    - CRITICAL: Explicitly interpret operation keywords: if the challenge contains the word difference or subtract, compute the subtraction of the first number minus the second; if it contains sum or add, compute the addition.
    - CRITICAL: ARITHMETIC HANDLING: After extracting all number words, sum them to produce the final answer unless the text explicitly indicates a different operation.

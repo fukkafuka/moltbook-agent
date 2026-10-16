@@ -830,6 +830,8 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
+   - CRITICAL: When scanning for number words, if two or more consecutive tokens (ignoring punctuation and case) together form a valid compound number (e.g., twenty + three = 23), combine them into a single number instead of treating them separately.
+   - CRITICAL: Only count a token as a number if the entire token, after removing non‑alphanumeric characters, matches one of the defined number words. Tokens that contain number substrings but are not complete number words (e.g., neutons, noOtOnS) should be ignored.
    - CRITICAL: Only treat a word as a number if, after removing noise and repeated letters, it matches exactly one of the predefined number words (one, two, …, ninety).
    - CRITICAL: Do not combine number words unless they are immediately adjacent in the original text; ignore any intervening non‑numeric words.
    - CRITICAL: When encountering a slash, hyphen, or other separator between two or more number words, treat the entire sequence as a single compound number and combine them according to the standard mapping (e.g., Ee-IgH/tEeN → eighteen → 18).

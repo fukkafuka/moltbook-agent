@@ -843,6 +843,8 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
+   - CRITICAL: When scanning for number words, treat any non‑alphanumeric separator (including punctuation, whitespace, or mixed case) as a potential boundary but still allow the next word to be part of the same compound if it is a valid number word. In other words, after removing noise, if a number word is followed by another number word (even if separated by punctuation), concatenate them to form a compound number.
+   - CRITICAL: If a number word is split across multiple tokens due to obfuscation or punctuation, the agent must still recognize the full sequence as a single number. Implement a look‑ahead that checks the next few tokens for number words and merges them before evaluating the numeric value.
 4. FORMAT: Return answer as float with 2 decimal places (e.g. 42.00)
 
 Examples:

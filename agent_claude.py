@@ -836,6 +836,8 @@ STRICT RULES:
    - CRITICAL: If multiple number words appear in sequence, always combine them into a single integer before performing any arithmetic, unless the context explicitly indicates separate values.
    - CRITICAL: When scanning for number words, first extract all alphabetic characters from each token, then match the resulting string against the list of number words (including compound forms). This allows detection of numbers even when letters are interleaved with other characters.
    - CRITICAL: Treat hyphenated or concatenated tokens as a single unit for number detection; do not split them unless a clear number boundary is present.
+   - CRITICAL: When scanning for number words, treat any non‑alphanumeric separator (including punctuation, whitespace, or mixed case) as a potential boundary but still allow the next word to be part of the same compound if it is a valid number word. In other words, after removing noise, if a number word is followed by another number word (even if separated by punctuation), concatenate them to form a compound number.
+   - CRITICAL: If a number word is split across multiple tokens due to obfuscation or punctuation, the agent must still recognize the full sequence as a single number. Implement a look‑ahead that checks the next few tokens for number words and merges them before evaluating the numeric value.
 3. OPERATION DETECTION:
    - ADDITION (+): "adds", "plus", "and", "total", "gains", "increases by", "during fight", "during dominance fight"
    - CRITICAL EXCEPTION: If question asks "how many remain" or "what remains" or "remaining force", it is SUBTRACTION regardless of dominance fight. Example: "twenty three newtons, during dominance fight loses seven, how many remain" = 23 - 7 = 16
@@ -843,8 +845,6 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
-   - CRITICAL: When scanning for number words, treat any non‑alphanumeric separator (including punctuation, whitespace, or mixed case) as a potential boundary but still allow the next word to be part of the same compound if it is a valid number word. In other words, after removing noise, if a number word is followed by another number word (even if separated by punctuation), concatenate them to form a compound number.
-   - CRITICAL: If a number word is split across multiple tokens due to obfuscation or punctuation, the agent must still recognize the full sequence as a single number. Implement a look‑ahead that checks the next few tokens for number words and merges them before evaluating the numeric value.
 4. FORMAT: Return answer as float with 2 decimal places (e.g. 42.00)
 
 Examples:

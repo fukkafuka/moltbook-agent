@@ -817,18 +817,10 @@ STRICT RULES:
    - CRITICAL: If a number word contains internal punctuation (e.g., hyphens, slashes, or mixed case), first remove all non‑letter characters, then apply the compound number combination rules to the resulting contiguous letter sequence.
    - CRITICAL: Do not combine number words unless they are immediately adjacent in the original text; ignore any intervening non‑numeric words.
    - CRITICAL: When encountering a slash, hyphen, or other separator between two or more number words, treat the entire sequence as a single compound number and combine them according to the standard mapping.
-   - CRITICAL: When a number word is followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication (duplicate rule consolidated).
+   - CRITICAL: When a number word is followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication.
    - CRITICAL: When the word "point" appears between two number words, ignore any intervening symbols or spaces and treat the preceding and following number words as a single numeric token.
-   - CRITICAL: When the phrase "Net Force" appears, compute the difference between the first and second numeric values encountered in the challenge (duplicate rule consolidated).
-   - CRITICAL: When the text contains a number word followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication (duplicate rule consolidated).
+   - CRITICAL: When the phrase "Net Force" appears, compute the difference between the first and second numeric values encountered in the challenge.
    - CRITICAL: When scanning for number words, only accept a token as a number if the entire token, after removing non‑alphanumeric characters, matches one of the defined number words.
-3. OPERATION DETECTION:
-   - ADDITION (+): "adds", "plus", "and", "total", "gains", "increases by", "during fight", "during dominance fight"
-   - CRITICAL EXCEPTION: If question asks "how many remain" or "what remains" or "remaining force", it is SUBTRACTION regardless of dominance fight. Example: "twenty three newtons, during dominance fight loses seven, how many remain" = 23 - 7 = 16
-   - SUBTRACTION (-): "loses", "slows by", "decreases by", "reduced by", "net force", "opposes", "resists"
-   - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
-   - DIVISION (/): "divided", "split"
-   - DEFAULT: if no clear subtraction keyword → ADDITION (+)
    - CRITICAL: When scanning for number words, allow interleaved non‑alphabetic characters or unrelated letters within the word; extract only the letters that match a known number word pattern (e.g., N o O t O n N e U → Nine).
    - CRITICAL: Treat hyphenated or concatenated tokens as a single unit for number detection, but only if the combined letters form a valid number word sequence; otherwise ignore the token.
    - CRITICAL: When a token ends with the letters ty (case‑insensitive) and is immediately followed by another number word token, treat the pair as the compound number twenty plus that number (e.g., tY + T + hReE → 23).
@@ -838,10 +830,17 @@ STRICT RULES:
    - CRITICAL: When scanning for number words, only accept tokens that match the exact list of valid number words (one to ninety). Discard any token that does not match this list, even if it resembles a number word.
    - CRITICAL: Explicitly interpret operation keywords: if the challenge contains the word difference or subtract, compute the subtraction of the first number minus the second; if it contains sum or add, compute the addition.
    - CRITICAL: ARITHMETIC HANDLING: After extracting all number words, sum them to produce the final answer unless the text explicitly indicates a different operation.
-   - CRITICAL: COMPOUND NUMBER CONTINUITY: When a number word is immediately followed by another number word (ignoring non-alphanumeric separators), always combine them into a single integer before any arithmetic operation.
-   - CRITICAL: HYPHEN AND SPACE NORMALIZATION: Treat hyphens, spaces, and any non-alphanumeric characters between number words as potential separators that should be ignored when determining if words belong to the same compound number.
+   - CRITICAL: COMPOUND NUMBER CONTINUITY: When a number word is immediately followed by another number word (ignoring non‑alphanumeric separators), always combine them into a single integer before any arithmetic operation.
+   - CRITICAL: HYPHEN AND SPACE NORMALIZATION: Treat hyphens, spaces, and any non‑alphanumeric characters between number words as potential separators that should be ignored when determining if words belong to the same compound number.
    - CRITICAL: Before parsing, strip all non‑alphanumeric characters (including punctuation and whitespace) from the challenge text, then collapse any repeated letters within each token to a single instance.
    - CRITICAL: After cleaning, scan the entire string for contiguous sequences of alphabetic characters that match the defined number words, and combine them into a single numeric value before performing any arithmetic.
+3. OPERATION DETECTION:
+   - ADDITION (+): "adds", "plus", "and", "total", "gains", "increases by", "during fight", "during dominance fight"
+   - CRITICAL EXCEPTION: If question asks "how many remain" or "what remains" or "remaining force", it is SUBTRACTION regardless of dominance fight. Example: "twenty three newtons, during dominance fight loses seven, how many remain" = 23 - 7 = 16
+   - SUBTRACTION (-): "loses", "slows by", "decreases by", "reduced by", "net force", "opposes", "resists"
+   - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
+   - DIVISION (/): "divided", "split"
+   - DEFAULT: if no clear subtraction keyword → ADDITION (+)
 4. FORMAT: Return answer as float with 2 decimal places (e.g. 42.00)
 
 Examples:

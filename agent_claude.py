@@ -829,6 +829,8 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
+   - CRITICAL: When scanning for number words, allow interleaved non‑alphabetic characters or unrelated letters within the word; extract only the letters that match a known number word pattern (e.g., N o O t O n N e U → Nine).
+   - CRITICAL: Treat hyphenated or concatenated tokens as a single unit for number detection, but only if the combined letters form a valid number word sequence; otherwise ignore the token.
    - CRITICAL: When a token ends with the letters ty (case‑insensitive) and is immediately followed by another number word token, treat the pair as the compound number twenty plus that number (e.g., tY + T + hReE → 23).
    - CRITICAL: If two number word tokens appear consecutively without any intervening non‑number words, automatically combine them into a single compound number (e.g., twenty + three → 23).
    - CRITICAL: When scanning for number words, treat any sequence of alphabetic characters that, after removing non‑alphanumeric characters and collapsing repeated letters, matches a known number word as a single token, even if it is split by punctuation or whitespace.

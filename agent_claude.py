@@ -832,6 +832,8 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
+   - CRITICAL: When encountering a sequence of tokens that could form a compound number, first remove all non‑alphanumeric characters and mixed‑case letters, then concatenate the remaining characters into a single string before attempting to match number words.
+   - CRITICAL: If a number word is split across multiple tokens (e.g., tW/eN tY), treat the entire sequence as a single candidate for a compound number and apply the compound number rule to that concatenated string.
    - CRITICAL: When encountering a sequence of words that could form a compound number (e.g., twenty three, thirty two), combine them into a single numeric value before performing any arithmetic.
    - CRITICAL: Treat hyphens, underscores, and spaces as potential separators for compound numbers; strip them and merge adjacent number words into one value.
    - CRITICAL: When the question contains words such as remain, new, or difference, interpret the task as subtracting the second number from the first number found in the text.

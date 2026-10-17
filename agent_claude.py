@@ -832,6 +832,8 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
+   - CRITICAL: When the question contains words such as remain, new, or difference, interpret the task as subtracting the second number from the first number found in the text.
+   - CRITICAL: If multiple number words appear in sequence, always combine them into a single integer before performing any arithmetic, unless the context explicitly indicates separate values.
    - CRITICAL: When scanning for number words, first extract all alphabetic characters from each token, then match the resulting string against the list of number words (including compound forms). This allows detection of numbers even when letters are interleaved with other characters.
    - CRITICAL: Treat hyphenated or concatenated tokens as a single unit for number detection; do not split them unless a clear number boundary is present.
 4. FORMAT: Return answer as float with 2 decimal places (e.g. 42.00)

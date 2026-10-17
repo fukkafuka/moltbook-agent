@@ -809,7 +809,6 @@ STRICT RULES:
    - CRITICAL: When encountering a tens+ones combination, prioritize it over other number words.
    - CRITICAL: When multiple tens+ones combinations are present, prioritize the combination with the highest tens value.
    - CRITICAL: Treat the word "lo" as 50.
-   - CRITICAL: When scanning for number words, if two or more consecutive tokens (ignoring punctuation and case) together form a valid compound number, combine them into a single number before parsing.
    - CRITICAL: Only treat a token as a number if the entire cleaned token matches a known number word; ignore tokens that contain number substrings but are not complete number words.
    - CRITICAL: When scanning for number words, treat any non‑alphanumeric separator (including /, -, ], etc.) as a potential split point and attempt to re‑combine adjacent fragments that together form a valid number word.
    - CRITICAL: If a token contains a mix of letters that, after removing non‑alphanumeric characters and repeated letters, matches a known number word, interpret it as that number regardless of surrounding punctuation.
@@ -817,21 +816,13 @@ STRICT RULES:
    - CRITICAL: If a number word contains internal punctuation (e.g., hyphens, slashes, or mixed case), first remove all non‑letter characters, then apply the compound number combination rules to the resulting contiguous letter sequence.
    - CRITICAL: Do not combine number words unless they are immediately adjacent in the original text; ignore any intervening non‑numeric words.
    - CRITICAL: When encountering a slash, hyphen, or other separator between two or more number words, treat the entire sequence as a single compound number and combine them according to the standard mapping.
-   - CRITICAL: When a number word is followed by the word "claw(s)" and also mentions a force per claw, interpret this as multiplication.
-   - CRITICAL: When the word "point" appears between two number words, ignore any intervening symbols or spaces and treat the preceding and following number words as a single numeric token.
-   - CRITICAL: When the phrase "Net Force" appears, compute the difference between the first and second numeric values encountered in the challenge.
-   - CRITICAL: When scanning for number words, only accept a token as a number if the entire token, after removing non‑alphanumeric characters, matches one of the defined number words.
-   - CRITICAL: When scanning for number words, allow interleaved non‑alphabetic characters or unrelated letters within the word; extract only the letters that match a known number word pattern (e.g., N o O t O n N e U → Nine).
-   - CRITICAL: Treat hyphenated or concatenated tokens as a single unit for number detection, but only if the combined letters form a valid number word sequence; otherwise ignore the token.
-   - CRITICAL: When a token ends with the letters ty (case‑insensitive) and is immediately followed by another number word token, treat the pair as the compound number twenty plus that number (e.g., tY + T + hReE → 23).
-   - CRITICAL: If two number word tokens appear consecutively without any intervening non‑number words, automatically combine them into a single compound number (e.g., twenty + three → 23).
+   - CRITICAL: When a token ends with the letters "ty" (case‑insensitive) and is immediately followed by another number word token, treat the pair as the compound number twenty plus that number.
+   - CRITICAL: If two number word tokens appear consecutively without any intervening non‑number words, automatically combine them into a single compound number.
    - CRITICAL: When scanning for number words, treat any sequence of alphabetic characters that, after removing non‑alphanumeric characters and collapsing repeated letters, matches a known number word as a single token, even if it is split by punctuation or whitespace.
    - CRITICAL: If a number word appears within a longer obfuscated string (e.g., tW/eNtY fIvE), first remove all non‑alphanumeric characters, collapse repeated letters, then parse the resulting string for the longest matching number word sequence from left to right.
    - CRITICAL: When scanning for number words, only accept tokens that match the exact list of valid number words (one to ninety). Discard any token that does not match this list, even if it resembles a number word.
    - CRITICAL: Explicitly interpret operation keywords: if the challenge contains the word difference or subtract, compute the subtraction of the first number minus the second; if it contains sum or add, compute the addition.
-   - CRITICAL: ARITHMETIC HANDLING: After extracting all number words, sum them to produce the final answer unless the text explicitly indicates a different operation.
-   - CRITICAL: COMPOUND NUMBER CONTINUITY: When a number word is immediately followed by another number word (ignoring non‑alphanumeric separators), always combine them into a single integer before any arithmetic operation.
-   - CRITICAL: HYPHEN AND SPACE NORMALIZATION: Treat hyphens, spaces, and any non‑alphanumeric characters between number words as potential separators that should be ignored when determining if words belong to the same compound number.
+   - CRITICAL: After extracting all number words, sum them to produce the final answer unless the text explicitly indicates a different operation.
    - CRITICAL: Before parsing, strip all non‑alphanumeric characters (including punctuation and whitespace) from the challenge text, then collapse any repeated letters within each token to a single instance.
    - CRITICAL: After cleaning, scan the entire string for contiguous sequences of alphabetic characters that match the defined number words, and combine them into a single numeric value before performing any arithmetic.
 3. OPERATION DETECTION:
@@ -841,8 +832,6 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
-   - CRITICAL: When scanning for number words, first extract all alphabetic characters from each token, then match the resulting string against the list of number words (including compound forms). This allows detection of numbers even when letters are interleaved with other characters.
-   - CRITICAL: Treat hyphenated or concatenated tokens as a single unit for number detection; do not split them unless a clear number boundary is present.
 4. FORMAT: Return answer as float with 2 decimal places (e.g. 42.00)
 
 Examples:

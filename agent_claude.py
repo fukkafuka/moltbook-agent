@@ -823,15 +823,8 @@ STRICT RULES:
    - CRITICAL: When scanning for number words, only accept tokens that match the exact list of valid number words (one to ninety). Discard any token that does not match this list, even if it resembles a number word.
    - CRITICAL: Explicitly interpret operation keywords: if the challenge contains the word difference or subtract, compute the subtraction of the first number minus the second; if it contains sum or add, compute the addition.
    - CRITICAL: After extracting all number words, sum them to produce the final answer unless the text explicitly indicates a different operation.
-   - CRITICAL: Before parsing, strip all non‑alphanumeric characters (including punctuation and whitespace) from the challenge text, then collapse any repeated letters within each token to a single instance.
+   - CRITICAL: Before parsing, strip all non‑alphanumeric characters (including punctuation and whitespace) from the challenge text, then collapse any repeated letters within each token.
    - CRITICAL: After cleaning, scan the entire string for contiguous sequences of alphabetic characters that match the defined number words, and combine them into a single numeric value before performing any arithmetic.
-3. OPERATION DETECTION:
-   - ADDITION (+): "adds", "plus", "and", "total", "gains", "increases by", "during fight", "during dominance fight"
-   - CRITICAL EXCEPTION: If question asks "how many remain" or "what remains" or "remaining force", it is SUBTRACTION regardless of dominance fight. Example: "twenty three newtons, during dominance fight loses seven, how many remain" = 23 - 7 = 16
-   - SUBTRACTION (-): "loses", "slows by", "decreases by", "reduced by", "net force", "opposes", "resists"
-   - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
-   - DIVISION (/): "divided", "split"
-   - DEFAULT: if no clear subtraction keyword → ADDITION (+)
    - CRITICAL: If the text contains a verb such as increase, increases, or increasing followed by a number, add that number to the initial speed.
    - CRITICAL: If the text contains a verb such as slow, slown, or slowed followed by a number, subtract that number from the initial speed.
    - CRITICAL: When the word by follows a verb indicating change, treat the subsequent number as the magnitude of that change.
@@ -843,6 +836,13 @@ STRICT RULES:
    - CRITICAL: If multiple number words appear in sequence, always combine them into a single integer before performing any arithmetic, unless the context explicitly indicates separate values.
    - CRITICAL: When scanning for number words, first extract all alphabetic characters from each token, then match the resulting string against the list of number words (including compound forms). This allows detection of numbers even when letters are interleaved with other characters.
    - CRITICAL: Treat hyphenated or concatenated tokens as a single unit for number detection; do not split them unless a clear number boundary is present.
+3. OPERATION DETECTION:
+   - ADDITION (+): "adds", "plus", "and", "total", "gains", "increases by", "during fight", "during dominance fight"
+   - CRITICAL EXCEPTION: If question asks "how many remain" or "what remains" or "remaining force", it is SUBTRACTION regardless of dominance fight. Example: "twenty three newtons, during dominance fight loses seven, how many remain" = 23 - 7 = 16
+   - SUBTRACTION (-): "loses", "slows by", "decreases by", "reduced by", "net force", "opposes", "resists"
+   - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
+   - DIVISION (/): "divided", "split"
+   - DEFAULT: if no clear subtraction keyword → ADDITION (+)
 4. FORMAT: Return answer as float with 2 decimal places (e.g. 42.00)
 
 Examples:

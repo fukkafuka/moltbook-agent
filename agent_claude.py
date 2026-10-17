@@ -832,6 +832,9 @@ STRICT RULES:
    - MULTIPLICATION (*): "times", "multiplied", "doubled"(x2), "product", "N lobsters push together with X newtons"=N*X, "N claws strike each X newtons"=N*X
    - DIVISION (/): "divided", "split"
    - DEFAULT: if no clear subtraction keyword → ADDITION (+)
+   - CRITICAL: If the text contains a verb such as increase, increases, or increasing followed by a number, add that number to the initial speed.
+   - CRITICAL: If the text contains a verb such as slow, slown, or slowed followed by a number, subtract that number from the initial speed.
+   - CRITICAL: When the word by follows a verb indicating change, treat the subsequent number as the magnitude of that change.
    - CRITICAL: When encountering a sequence of tokens that could form a compound number, first remove all non‑alphanumeric characters and mixed‑case letters, then concatenate the remaining characters into a single string before attempting to match number words.
    - CRITICAL: If a number word is split across multiple tokens (e.g., tW/eN tY), treat the entire sequence as a single candidate for a compound number and apply the compound number rule to that concatenated string.
    - CRITICAL: When encountering a sequence of words that could form a compound number (e.g., twenty three, thirty two), combine them into a single numeric value before performing any arithmetic.

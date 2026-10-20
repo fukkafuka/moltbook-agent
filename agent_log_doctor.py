@@ -93,14 +93,18 @@ def groq_analyze(prompt):
                     {"role": "system", "content": "You are a precise log analyzer and Python code expert. Always respond in JSON format only."},
                     {"role": "user", "content": prompt}
                 ],
-                "max_tokens": 1000,
+                "max_tokens": 2000,
+                "reasoning_effort": "low",
                 "temperature": 0
             },
             timeout=30
         )
         data = r.json()
         if "choices" in data:
-            return data["choices"][0]["message"]["content"]
+            content = (data["choices"][0].get("message") or {}).get("content")  # 空応答チェック済み
+            if content and str(content).strip():
+                return content
+            log("Groq応答の内容が空 → OpenRouterへ")
         log(f"Groq応答エラー: {data.get('error',{}).get('message','不明')[:80]} → OpenRouterへ")
     except Exception as e:
         log(f"Groq接続エラー: {str(e)[:80]} → OpenRouterへ")
@@ -133,8 +137,12 @@ def groq_analyze(prompt):
             )
             data = r.json()
             if "choices" in data:
+                content = (data["choices"][0].get("message") or {}).get("content")
+                if not content or not str(content).strip():
+                    log(f"OpenRouter {model} の応答が空 → 次のモデルへ")
+                    continue
                 log(f"OpenRouter {model} で分析成功")
-                return data["choices"][0]["message"]["content"]
+                return content
             log(f"OpenRouter {model} エラー: {data.get('error',{}).get('message','不明')[:50]}")
         except Exception as e:
             log(f"OpenRouter {model} 接続エラー: {str(e)[:80]}")
@@ -227,6 +235,33 @@ def get_current_rules():
         pass
     return "ルール取得失敗"
 
+def _parse_doctor_json(raw):
+    """LLM応答から辞書を取り出す。二重エンコードされた文字列、コードブロック、
+    前後に文章が付いた応答、リストで返る応答に対応する。取り出せなければ None。"""
+    if not isinstance(raw, str) or not raw.strip():
+        return None
+    from json_repair import repair_json
+    text = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw.strip())
+    candidates = [text]
+    m = re.search(r"\{.*\}", text, re.DOTALL)
+    if m:
+        candidates.append(m.group())
+    for cand in candidates:
+        for _ in range(2):
+            try:
+                obj = json.loads(repair_json(cand))
+            except Exception:
+                break
+            if isinstance(obj, str):
+                cand = obj
+                continue
+            if isinstance(obj, list):
+                obj = obj[0] if obj and isinstance(obj[0], dict) else None
+            if isinstance(obj, dict):
+                return obj
+            break
+    return None
+
 def ask_groq_for_fix(problems, false_challenges, log_sample):
     challenge_text = json.dumps(false_challenges, ensure_ascii=False, indent=2) if false_challenges else "なし"
     current_rules = get_current_rules()
@@ -295,10 +330,9 @@ Target: ~40 rules maximum. Each rule should start WITHOUT "CRITICAL:" prefix."""
 
         result = groq_analyze(prompt)
         try:
-            from json_repair import repair_json
-            data = json.loads(repair_json(result.strip()))
-            if isinstance(data, list):
-                data = data[0] if data else {}
+            data = _parse_doctor_json(result)
+            if data is None:
+                raise ValueError(f"辞書形式ではありません(型={type(result).__name__})")
         except Exception as e:
             log(f"trim パースエラー: {e} → 整理スキップ")
             return agent_content
@@ -451,13 +485,10 @@ def _run():
     try:
         result = ask_groq_for_fix(problems, false_challenges, log_content)
         try:
-            from json_repair import repair_json
-            data = json.loads(repair_json(result.strip()))
-            if isinstance(data, list):
-                data = data[0] if data else {}
-            if not isinstance(data, dict):
-                log(f"パースエラー: 期待した辞書形式ではありません(型={type(data).__name__}): {str(data)[:200]}")
-                _record_doctor_error(f"パースエラー(型={type(data).__name__})")
+            data = _parse_doctor_json(result)
+            if data is None:
+                log(f"パースエラー: 期待した辞書形式ではありません(型={type(result).__name__}): {str(result)[:200]}")
+                _record_doctor_error(f"パースエラー(型={type(result).__name__})")
                 return
         except Exception as e:
             log(f"パースエラー: {e}")
@@ -735,14 +766,67 @@ def extract_unclassified_patterns():
 
     with open(out_path, "w") as f:
         json.dump(store, f, ensure_ascii=False, indent=2)
+    # 2026-10-20追加: 自動移動後の待機リストをスナップショットに反映（自動移動分の二重計上を防止）
+    _mm_snap = _load_memory_safe()
+    _mm_snap["unclassified_pending_snapshot"] = [e.get("challenge", "") for e in store.get("entries", []) if e.get("challenge")]
+    _save_memory_safe(_mm_snap)
 
     if new_entries:
         log(f"📋 未分類パターン新規抽出: {len(new_entries)}件（待機中{len(store['entries'])}件） → unclassified_patterns.json")
     else:
         log(f"📋 未分類パターン: 新規なし（待機中{len(store['entries'])}件）")
 
+def _load_memory_safe():
+    try:
+        with open(MEMORY_FILE, "r") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def _save_memory_safe(mm):
+    try:
+        with open(MEMORY_FILE, "w") as f:
+            json.dump(mm, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        log(f"⚠️ memory.json書き込みエラー: {e}")
+
+def record_manual_fixes():
+    """2026-10-20追加: 待機中(unclassified_patterns.jsonのentries)から項目が消えている場合、
+    それが自動移動(extract_unclassified_patterns)でなければ手動修正とみなして
+    manual_fix_historyに自動記録する。
+    判定用に直近の待機リストを memory.json の unclassified_pending_snapshot に保持する。
+    自動移動分は extract_unclassified_patterns() がスナップショットを更新するため、二重計上されない。"""
+    out_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'unclassified_patterns.json')
+    try:
+        with open(out_path, "r") as f:
+            store = json.load(f)
+    except Exception:
+        return
+    current = [e.get("challenge", "") for e in store.get("entries", []) if e.get("challenge")]
+    mm = _load_memory_safe()
+    prev = mm.get("unclassified_pending_snapshot")
+    if prev is None:
+        mm["unclassified_pending_snapshot"] = current
+        _save_memory_safe(mm)
+        return
+    current_set = set(current)
+    manual = [c for c in prev if c not in current_set]
+    if manual:
+        mm.setdefault("manual_fix_history", []).append({
+            "time": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "fixed": len(manual),
+            "patterns": ["手動修正（待機項目の手動解消・自動記録）"] * len(manual),
+        })
+        log(f"✅ 手動修正を自動記録: {len(manual)}件")
+    mm["unclassified_pending_snapshot"] = current
+    _save_memory_safe(mm)
+
 def run_doctor_check():
     """agent_claudeのrun()末尾から呼び出し。直近60行のCAPTCHA問題を即時修正。"""
+    try:
+        record_manual_fixes()
+    except Exception as e:
+        log("🏥 record_manual_fixes エラー: " + str(e))
     if not os.path.exists(LOG_FILE):
         return
     with open(LOG_FILE) as f:
@@ -763,12 +847,8 @@ def run_doctor_check():
     log("🏥 失敗Challenge: " + str(len(false_challenges)) + "件 分析中...")
     try:
         result = ask_groq_for_fix(problems, false_challenges, log_content)
-        from json_repair import repair_json
-        import json as _json
-        data = _json.loads(repair_json(result.strip()))
-        if isinstance(data, list):
-            data = data[0] if data else {}
-        if not isinstance(data, dict):
+        data = _parse_doctor_json(result)
+        if data is None:
             log(f"🏥 run_doctor_check: パースエラー、期待した辞書形式ではありません(型={type(data).__name__})")
             try:
                 import os as _os

@@ -788,66 +788,25 @@ STRICT RULES:
    - twenty=20 thirty=30 forty=40 fifty=50 sixty=60 seventy=70 eighty=80 ninety=90
    - Repeated/doubled letters = obfuscation only: "fIfFeEe"=five=5, "tTwWeEnNtTyY"=twenty=20
    - Obfuscated compound numbers: "ThI rTy FiV e"=thirty five=35, "tWeNtY tHrEe"=twenty three=23. NEVER read only the last word.
-   - CRITICAL: Scan the entire text for number words, ignoring all non‑alphanumeric characters, mixed case, and repeated letters.
-   - CRITICAL: After removing separators, concatenate the remaining characters into a single string for easier parsing.
-   - CRITICAL: Treat hyphens, underscores, spaces, slashes, and other separators as obfuscation; they do not split number words unless a hyphen explicitly separates numeric expressions.
-   - CRITICAL: If a number word is split by non‑alphabetic characters but appears consecutively, combine it into one compound number.
-   - CRITICAL: When a compound number is formed, replace the original word sequence with its numeric value before searching for operators.
-   - CRITICAL: If a multiplication symbol (*) appears anywhere in the raw text, treat the entire operation as multiplication and ignore other operator keywords.
-   - CRITICAL: When the phrase "product" directly precedes numbers, interpret it as a multiplication keyword.
-   - CRITICAL: When the phrase "multiplied by" appears, prioritize the multiplication operation over any addition operations in the same phrase.
-   - CRITICAL: If the word "per" appears between two numbers, treat it as multiplication only when a countable noun follows the second number.
-   - CRITICAL: When the phrase "X newtons AND N claws" appears, interpret it as X * N.
-   - CRITICAL: When a number word is followed by the word "claw(s)" and a force per claw is mentioned, interpret this as multiplication.
-   - CRITICAL: If the word "decreases" or "decrease" appears, treat it as a subtraction operator: subtract the following number from the preceding number.
-   - CRITICAL: If the word "increases" or "increase" appears, treat it as an addition operator: add the following number to the preceding number.
-   - CRITICAL: If a hyphen (-) appears between two numeric expressions, interpret it as a subtraction operator and compute the difference.
-   - CRITICAL: If the word "point" (case‑insensitive, possibly obfuscated) appears between two number words, combine them into a single decimal number.
-   - CRITICAL: When the phrase "Net Force" appears, compute the difference between the first and second numeric values encountered.
-   - CRITICAL: When the question asks for a total or sum, combine all number words into compound numbers and perform the corresponding addition.
-   - CRITICAL: When the question asks for a total or sum, always perform addition on the number words, even if they are compound numbers.
-   - CRITICAL: When a + symbol is present, always sum the values of all number words preceding it.
-   - CRITICAL: When the word "another" or any indicator of a second distinct entity appears, include any numeric value associated with that entity as a separate operand.
-   - CRITICAL: When multiple subjects are mentioned and one increases or adds a value, treat that value as an additional positive contribution to the overall total.
-   - CRITICAL: Treat the word "and" as a default addition operator if no other operator is specified.
-   - CRITICAL: Treat the word "and" as a separator for addition, but also consider the + symbol as a valid operator for addition.
-   - CRITICAL: When a number word is preceded by a word indicating a quantity or a range, consider the number word as part of a compound number.
-   - CRITICAL: When a number word is followed by another number word, always combine them into a single compound number.
-   - CRITICAL: Treat all number words as sequential unless a hyphen explicitly separates them.
-   - CRITICAL: When a compound number is formed, prioritize the largest number word first, then combine with the next sequential number word.
-   - CRITICAL: When encountering a tens+ones combination, prioritize it over other number words.
-   - CRITICAL: When multiple tens+ones combinations are present, prioritize the combination with the highest tens value.
+   - CRITICAL: Read letters only: strip non-alphanumeric characters, mixed case and repeated letters from each token. A token is a number only when its cleaned letters exactly match a known number word (one to ninety, hundred); never match a number by substring.
+   - CRITICAL: Symbols and separators (hyphen, slash, underscore, space, brackets, tilde) are obfuscation. They do not split a number word and do not stop adjacent number words from combining. A hyphen between two complete numeric expressions is a subtraction operator.
+   - CRITICAL: A number word split by symbols, repeated letters or interleaved noise (e.g. tW/eN tY, LoO-bS, Lo.oBbS) is rejoined before matching: remove non-letters, collapse repeats, then take the longest number-word match from left to right, looking ahead across the next few tokens.
+   - CRITICAL: Adjacent number words combine into one value before any operator is considered: tens plus ones (twenty three = 23, thirty five = 35), a token ending in "ty" followed by a number word means twenty plus that number, and "hundred" multiplies the preceding value. Prioritize tens+ones with the highest tens value, and never read only the last word.
+   - CRITICAL: Words between two number words break the sequence; number words that are not immediately adjacent in the text are separate values.
    - CRITICAL: Treat the word "lo" as 50.
-   - CRITICAL: Only treat a token as a number if the entire cleaned token matches a known number word; ignore tokens that contain number substrings but are not complete number words.
-   - CRITICAL: When scanning for number words, treat any non‑alphanumeric separator (including /, -, ], etc.) as a potential split point and attempt to re‑combine adjacent fragments that together form a valid number word.
-   - CRITICAL: If a token contains a mix of letters that, after removing non‑alphanumeric characters and repeated letters, matches a known number word, interpret it as that number regardless of surrounding punctuation.
-   - CRITICAL: When a number word is split by a hyphen or slash, treat the entire sequence of letters (ignoring the punctuation) as a single number word and combine it with adjacent number words before evaluation.
-   - CRITICAL: If a number word contains internal punctuation (e.g., hyphens, slashes, or mixed case), first remove all non‑letter characters, then apply the compound number combination rules to the resulting contiguous letter sequence.
-   - CRITICAL: Do not combine number words unless they are immediately adjacent in the original text; ignore any intervening non‑numeric words.
-   - CRITICAL: When encountering a slash, hyphen, or other separator between two or more number words, treat the entire sequence as a single compound number and combine them according to the standard mapping.
-   - CRITICAL: When a token ends with the letters "ty" (case‑insensitive) and is immediately followed by another number word token, treat the pair as the compound number twenty plus that number.
-   - CRITICAL: If two number word tokens appear consecutively without any intervening non‑number words, automatically combine them into a single compound number.
-   - CRITICAL: When scanning for number words, treat any sequence of alphabetic characters that, after removing non‑alphanumeric characters and collapsing repeated letters, matches a known number word as a single token, even if it is split by punctuation or whitespace.
-   - CRITICAL: If a number word appears within a longer obfuscated string (e.g., tW/eNtY fIvE), first remove all non‑alphanumeric characters, collapse repeated letters, then parse the resulting string for the longest matching number word sequence from left to right.
-   - CRITICAL: When scanning for number words, only accept tokens that match the exact list of valid number words (one to ninety). Discard any token that does not match this list, even if it resembles a number word.
-   - CRITICAL: Explicitly interpret operation keywords: if the challenge contains the word difference or subtract, compute the subtraction of the first number minus the second; if it contains sum or add, compute the addition.
-   - CRITICAL: After extracting all number words, sum them to produce the final answer unless the text explicitly indicates a different operation.
-   - CRITICAL: Before parsing, strip all non‑alphanumeric characters (including punctuation and whitespace) from the challenge text, then collapse any repeated letters within each token.
-   - CRITICAL: After cleaning, scan the entire string for contiguous sequences of alphabetic characters that match the defined number words, and combine them into a single numeric value before performing any arithmetic.
-   - CRITICAL: If the text contains a verb such as increase, increases, or increasing followed by a number, add that number to the initial speed.
-   - CRITICAL: If the text contains a verb such as slow, slown, or slowed followed by a number, subtract that number from the initial speed.
-   - CRITICAL: When the word by follows a verb indicating change, treat the subsequent number as the magnitude of that change.
-   - CRITICAL: When encountering a sequence of tokens that could form a compound number, first remove all non‑alphanumeric characters and mixed‑case letters, then concatenate the remaining characters into a single string before attempting to match number words.
-   - CRITICAL: If a number word is split across multiple tokens (e.g., tW/eN tY), treat the entire sequence as a single candidate for a compound number and apply the compound number rule to that concatenated string.
-   - CRITICAL: When encountering a sequence of words that could form a compound number (e.g., twenty three, thirty two), combine them into a single numeric value before performing any arithmetic.
-   - CRITICAL: Treat hyphens, underscores, and spaces as potential separators for compound numbers; strip them and merge adjacent number words into one value.
-   - CRITICAL: When the question contains words such as remain, new, or difference, interpret the task as subtracting the second number from the first number found in the text.
-   - CRITICAL: If multiple number words appear in sequence, always combine them into a single integer before performing any arithmetic, unless the context explicitly indicates separate values.
-   - CRITICAL: When scanning for number words, first extract all alphabetic characters from each token, then match the resulting string against the list of number words (including compound forms). This allows detection of numbers even when letters are interleaved with other characters.
-   - CRITICAL: Treat hyphenated or concatenated tokens as a single unit for number detection; do not split them unless a clear number boundary is present.
-   - CRITICAL: When scanning for number words, treat any non‑alphanumeric separator (including punctuation, whitespace, or mixed case) as a potential boundary but still allow the next word to be part of the same compound if it is a valid number word. In other words, after removing noise, if a number word is followed by another number word (even if separated by punctuation), concatenate them to form a compound number.
-   - CRITICAL: If a number word is split across multiple tokens due to obfuscation or punctuation, the agent must still recognize the full sequence as a single number. Implement a look‑ahead that checks the next few tokens for number words and merges them before evaluating the numeric value.
-   - CRITICAL: When scanning for number words, treat any sequence of alphabetic characters as a candidate, ignoring case and any intervening non‑alphanumeric characters, and then match the cleaned sequence against the list of number words.
+   - CRITICAL: Addition: "+", "and", "plus", "gains", "adds", "together", "combined", "total", "sum" and "during (dominance) fight" mean addition unless another operator applies. "and" is the default addition operator when no other operator is stated.
+   - CRITICAL: For total or sum questions, add all number words, including compound numbers, unless the text explicitly indicates another operation.
+   - CRITICAL: A "*" anywhere in the raw text means multiplication and overrides other operator keywords.
+   - CRITICAL: Multiplication: "product", "multiply", "multiplied by", "times", "doubled" and "doubles" mean multiplication. "multiplied by" overrides addition in the same phrase.
+   - CRITICAL: "per" between two numbers means multiplication only when a countable noun follows the second number. "N claws (or lobsters) each exerting or striking X newtons" means N * X, and "X newtons per claw" with N claws means X * N.
+   - CRITICAL: "per second" together with "for N seconds" means speed times time.
+   - CRITICAL: Subtraction: "decrease(s)", "reduce(d)", "slow(s)/slowed by", "lose(s)/loses", "minus", "subtract", "oppose(s)", "resist(s)", "countered", "net force", "remain(s)/remaining" mean subtracting the following number from the preceding number.
+   - CRITICAL: "difference" means subtract the second number from the first. "What remains" or "how many remain" is subtraction even during a dominance fight.
+   - CRITICAL: "increase(s)", "increasing", "gain(s)" and "add(s)" followed by a number add that number to the initial value.
+   - CRITICAL: "by" after a change verb introduces the magnitude of that change.
+   - CRITICAL: "another" or a second entity (second lobster, other claw) introduces an additional operand. When one entity increases or adds a value, that value is an additional positive contribution to the total.
+   - CRITICAL: The word "point" between two number words combines them into one decimal number.
+   - CRITICAL: "Net Force" compares the first and second numeric values encountered.
 3. OPERATION DETECTION:
    - ADDITION (+): "adds", "plus", "and", "total", "gains", "increases by", "during fight", "during dominance fight"
    - CRITICAL EXCEPTION: If question asks "how many remain" or "what remains" or "remaining force", it is SUBTRACTION regardless of dominance fight. Example: "twenty three newtons, during dominance fight loses seven, how many remain" = 23 - 7 = 16

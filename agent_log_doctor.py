@@ -338,7 +338,7 @@ Target: ~40 rules maximum. Each rule should start WITHOUT "CRITICAL:" prefix."""
             return agent_content
 
         new_rules = data.get("consolidated_rules", [])
-        if not new_rules or len(new_rules) > current_count:
+        if not new_rules or len(new_rules) >= current_count:
             log(f"trim 結果不正（{len(new_rules)}件）→ 整理スキップ")
             return agent_content
 

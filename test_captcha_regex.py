@@ -72,6 +72,11 @@ CASES = [
         "70.00",
         "架空単位語'footum'直前のデコイ数値(twenty)を除外し、先頭2つを誤って使う問題(2026-09-25発見)",
     ),
+    (
+        "A] lO^bSt-Er S[wImS liK e] aT tWeNnY- tHrEe~ ceNnT/iMeTeRs PeR sEcOnD, aNoThEr] lOoobssstEr PuShEs^ iT uP bY sEvEn{ ceNnT/iMeTeRs, HoW/ mUcH ToTaL veLaWcItEeTyyy fOr ThE lOoobsss tEr?",
+        "30.00",
+        "速度(per second)の後の無関係なfor(for the lobster)で乗算誤判定されていた問題(2026-10-20発見)",
+    ),
 ]
 
 def main():

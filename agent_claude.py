@@ -742,6 +742,15 @@ def regex_solve(challenge_text):  # noqa: replaced
                 return True
         return False
 
+    def _for_seconds():
+        # 2026-10-20: "for"の直後3トークン以内に"seconds"がある場合のみ速度×時間とみなす
+        # (従来は"total ... for the lobster"等の無関係な"for"でも乗算判定され誤答していた)
+        for j, t in enumerate(tokens):
+            is_for = t == 'for' or (len(t) == 4 and (t[1:] == 'for' or t[:-1] == 'for'))
+            if is_for and any(x in ('second', 'seconds') for x in tokens[j + 1:j + 4]):
+                return True
+        return False
+
     op = '+'
     if has_mul_symbol:
         op = '*'
@@ -749,7 +758,7 @@ def regex_solve(challenge_text):  # noqa: replaced
         op = '-'
     elif has_mul_word or mul_kws & deduped_tokens:
         op = '*'
-    elif ({'per', 'for'} <= deduped_tokens) or (_has_noisy_keyword('per') and _has_noisy_keyword('for')):
+    elif (({'per', 'for'} <= deduped_tokens) or (_has_noisy_keyword('per') and _has_noisy_keyword('for'))) and _for_seconds():
         # 2026-07-28: "at X per second for Y seconds"のような速度×時間パターンには
         # times/multiply等の明示的な乗算キーワードが一切含まれないため、
         # 「per」と「for」が両方出現する場合を暗黙の乗算シグナルとして扱う

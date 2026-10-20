@@ -4,6 +4,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import agent_claude_memory as mem
 from model_status import filter_alive_models
 
+GROQ_MODEL = "openai/gpt-oss-20b"  # 2026-08-01: llama-3.1-8b-instantはGroqが2026-08-16に廃止予定のため移行(公式推奨の移行先)
+
 BASE = os.path.dirname(os.path.abspath(__file__))
 
 def load_memory():
@@ -83,7 +85,7 @@ def dream():
         r = requests.post(
             'https://api.groq.com/openai/v1/chat/completions',
             headers={'Authorization': f'Bearer {groq_key}', 'Content-Type': 'application/json'},
-            json={'model': 'llama-3.1-8b-instant', 'messages': [{'role': 'user', 'content': prompt}], 'max_tokens': 500, 'temperature': 0.5},
+            json={'model': GROQ_MODEL, 'messages': [{'role': 'user', 'content': prompt}], 'max_tokens': 500, 'temperature': 0.5},
             timeout=30
         )
         resp = r.json()
